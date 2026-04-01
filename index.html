@@ -2,18 +2,20 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>SVT Quotation ERP</title>
+<title>SVT Quotation System</title>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
 <style>
 body { font-family: Arial; }
+.container { width: 210mm; padding: 15px; }
 
-.container { width: 210mm; padding: 20px; }
+h3 { margin-bottom: 5px; }
 
-.header { text-align: center; }
-
-.logo { width: 80px; }
+input, textarea, select {
+    width: 100%;
+    border: none;
+}
 
 table {
     width: 100%;
@@ -23,17 +25,13 @@ table {
 
 th, td {
     border: 1px solid black;
-    padding: 6px;
+    padding: 5px;
     font-size: 12px;
     text-align: center;
 }
 
-input, select, textarea {
-    width: 100%;
-    border: none;
-}
-
 .section { margin-top: 10px; }
+.logo { width: 80px; }
 
 button { margin-top: 10px; padding: 8px; }
 </style>
@@ -44,81 +42,103 @@ button { margin-top: 10px; padding: 8px; }
 <div id="quote" class="container">
 
 <!-- HEADER -->
-<div class="header">
+<div style="text-align:center">
 <img src="logo.png" class="logo"><br>
+
 <h2>SIDDHI VINAYAK TRADERS</h2>
+<p>12/306, ARYA NAGAR, FIROZABAD UTTAR PRADESH - 283203</p>
+<p>GSTIN: 09BFZPK4340C2Z7 | +91 9286107722 | svtjp11@gmail.com</p>
+
 <h3>QUOTATION</h3>
 </div>
 
-<!-- AUTO NUMBER -->
+<!-- QUOTATION DETAILS -->
 <div class="section">
-Ref No: <b id="ref"></b><br>
-Date: <input type="date" id="date">
+Quotation No: <input value="A00001"><br>
+Date: <input type="date"><br>
+Due Date: <input type="date">
 </div>
 
-<!-- CUSTOMER -->
+<!-- CLIENT -->
 <div class="section">
-Customer:<br>
-<input id="custName" placeholder="Customer Name" oninput="saveCustomer()">
-<textarea id="custAddr" placeholder="Address"></textarea>
+<h3>Client Details</h3>
+<input placeholder="Client Name (Required)">
+<input placeholder="Mobile (Required)">
+<input placeholder="GSTIN">
+<textarea placeholder="Address"></textarea>
+<input placeholder="City">
+<input placeholder="State">
+<input placeholder="PIN Code">
+<input placeholder="Email">
 </div>
 
 <!-- TABLE -->
 <table>
 <thead>
 <tr>
-<th>S.No</th>
-<th>Product</th>
+<th>Item</th>
+<th>HSN</th>
+<th>GST%</th>
 <th>Qty</th>
 <th>Rate</th>
-<th>GST%</th>
+<th>Amount</th>
+<th>CGST</th>
+<th>SGST</th>
 <th>Total</th>
 <th></th>
 </tr>
 </thead>
+
 <tbody id="tbody"></tbody>
 </table>
 
-<button onclick="addRow()">+ Add Product</button>
+<button onclick="addRow()">+ Add Item</button>
 
-<!-- TOTAL -->
+<!-- SUMMARY -->
 <div class="section">
 Subtotal: ₹ <span id="sub">0</span><br>
-GST: ₹ <span id="gst">0</span><br>
+CGST: ₹ <span id="cgst">0</span><br>
+SGST: ₹ <span id="sgst">0</span><br>
 <h3>Total: ₹ <span id="grand">0</span></h3>
-<p><b>Amount in Words:</b> <span id="words"></span></p>
+
+<b>Total Quantity:</b> <span id="qty">0</span><br>
+<b>Amount in Words:</b> <span id="words"></span>
 </div>
 
 <!-- FOOTER -->
 <div class="section">
-Validity: 7 Days<br>
+<b>Terms & Conditions:</b><br>
+<textarea>Prices valid for 7 days</textarea>
+
+<br><br>
+
+<b>Notes:</b><br>
+<textarea></textarea>
+
+<br><br>
+
 For Siddhi Vinayak Traders<br><br>
-Authorized Signatory
+Authorised Signatory
 </div>
 
 </div>
 
-<button onclick="saveQuote()">Save</button>
 <button onclick="downloadPDF()">Download PDF</button>
 
 <script>
-
-// AUTO REF NO
-let countRef = localStorage.getItem("ref") || 1;
-document.getElementById("ref").innerText = "SVT/2026/" + countRef;
-
-// ADD ROW
-let rowCount = 1;
 
 function addRow() {
     let tr = document.createElement("tr");
 
     tr.innerHTML = `
-    <td>${rowCount++}</td>
     <td><input></td>
-    <td><input type="number" oninput="calc()"></td>
-    <td><input type="number" oninput="calc()"></td>
+    <td><input></td>
     <td><input type="number" value="18" oninput="calc()"></td>
+    <td><input type="number" oninput="calc()"></td>
+    <td><input type="number" oninput="calc()"></td>
+    <td class="amt">0</td>
+    <td class="cgst">0</td>
+    <td class="sgst">0</td>
     <td class="total">0</td>
     <td><button onclick="del(this)">X</button></td>
     `;
@@ -126,23 +146,59 @@ function addRow() {
     tbody.appendChild(tr);
 }
 
-// DELETE
 function del(btn) {
     btn.parentElement.parentElement.remove();
     calc();
 }
 
-// CALCULATION
 function calc() {
     let rows = document.querySelectorAll("#tbody tr");
-    let sub = 0, gst = 0;
+
+    let sub = 0, cgst = 0, sgst = 0, qty = 0;
 
     rows.forEach(r => {
-        let qty = r.cells[2].children[0].value || 0;
-        let rate = r.cells[3].children[0].value || 0;
-        let g = r.cells[4].children[0].value || 0;
+        let gst = r.cells[2].children[0].value || 0;
+        let q = r.cells[3].children[0].value || 0;
+        let rate = r.cells[4].children[0].value || 0;
 
-        let total = qty * rate;
+        let amount = q * rate;
+        let gstVal = amount * gst / 100;
+
+        let cg = gstVal / 2;
+        let sg = gstVal / 2;
+
+        r.cells[5].innerText = amount.toFixed(2);
+        r.cells[6].innerText = cg.toFixed(2);
+        r.cells[7].innerText = sg.toFixed(2);
+        r.cells[8].innerText = (amount + gstVal).toFixed(2);
+
+        sub += amount;
+        cgst += cg;
+        sgst += sg;
+        qty += Number(q);
+    });
+
+    let grand = sub + cgst + sgst;
+
+    document.getElementById("sub").innerText = sub.toFixed(2);
+    document.getElementById("cgst").innerText = cgst.toFixed(2);
+    document.getElementById("sgst").innerText = sgst.toFixed(2);
+    document.getElementById("grand").innerText = grand.toFixed(2);
+    document.getElementById("qty").innerText = qty;
+
+    document.getElementById("words").innerText = grand + " Rupees Only";
+}
+
+function downloadPDF() {
+    html2pdf().from(document.getElementById("quote")).save("Quotation.pdf");
+}
+
+addRow();
+
+</script>
+
+</body>
+</html>        let total = qty * rate;
         let gstVal = total * g / 100;
 
         r.cells[5].innerText = (total + gstVal).toFixed(2);
