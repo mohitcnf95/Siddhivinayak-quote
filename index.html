@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Quotation</title>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+<style>
+body { font-family: Arial; }
+
+.container {
+    width: 210mm;
+    padding: 15px;
+}
+
+.header {
+    display: flex;
+    align-items: center;
+    border-bottom: 2px solid black;
+}
+
+.logo { width: 70px; }
+
+.company { flex: 1; text-align: center; }
+
+.section { margin-top: 10px; }
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+}
+
+th, td {
+    border: 1px solid black;
+    padding: 6px;
+    text-align: center;
+}
+
+input, select {
+    width: 100%;
+    border: none;
+}
+
+.summary {
+    text-align: right;
+    margin-top: 10px;
+}
+
+button {
+    margin-top: 10px;
+    padding: 8px;
+}
+</style>
+</head>
+
+<body>
+
+<div id="quote" class="container">
+
+<!-- HEADER -->
+<div class="header">
+    <img src="logo.png" class="logo">
+    <div class="company">
+        <h2>SIDDHI VINAYAK TRADERS</h2>
+        <p>GSTIN: XXXXXXX</p>
+        <h3>QUOTATION</h3>
+    </div>
+</div>
+
+<!-- CUSTOMER -->
+<div class="section">
+To: <input placeholder="Customer Name / Company">
+Date: <input type="date">
+Quotation No: <input value="QTN-001">
+</div>
+
+<!-- TABLE -->
+<table id="table">
+<thead>
+<tr>
+<th>Product</th>
+<th>Qty</th>
+<th>Unit</th>
+<th>Price</th>
+<th>Total</th>
+<th></th>
+</tr>
+</thead>
+<tbody id="tbody"></tbody>
+</table>
+
+<button onclick="addRow()">+ Add Product</button>
+
+<!-- TOTAL -->
+<div class="summary">
+<p>Subtotal: ₹ <span id="sub">0</span></p>
+
+<select id="gst" onchange="calc()">
+<option value="0">No GST</option>
+<option value="18">GST 18%</option>
+</select>
+
+<p>GST: ₹ <span id="gstVal">0</span></p>
+<h2>Total: ₹ <span id="grand">0</span></h2>
+</div>
+
+<!-- FOOTER -->
+<div class="section">
+<p><b>Terms:</b> Valid for 7 days</p>
+<br>
+<p>Authorized Signatory</p>
+</div>
+
+</div>
+
+<button onclick="downloadPDF()">Download PDF</button>
+
+<script>
+
+function addRow() {
+    let tr = document.createElement("tr");
+
+    tr.innerHTML = `
+    <td><input></td>
+    <td><input type="number" oninput="calc()"></td>
+    <td><select><option>kg</option><option>gm</option></select></td>
+    <td><input type="number" oninput="calc()"></td>
+    <td class="total">0</td>
+    <td><button onclick="del(this)">X</button></td>
+    `;
+
+    document.getElementById("tbody").appendChild(tr);
+}
+
+function del(btn) {
+    btn.parentElement.parentElement.remove();
+    calc();
+}
+
+function calc() {
+    let rows = document.querySelectorAll("#tbody tr");
+    let sub = 0;
+
+    rows.forEach(r => {
+        let qty = r.cells[1].children[0].value || 0;
+        let price = r.cells[3].children[0].value || 0;
+
+        let total = qty * price;
+        r.cells[4].innerText = total.toFixed(2);
+
+        sub += total;
+    });
+
+    document.getElementById("sub").innerText = sub.toFixed(2);
+
+    let gst = document.getElementById("gst").value;
+    let gstVal = sub * gst / 100;
+
+    document.getElementById("gstVal").innerText = gstVal.toFixed(2);
+    document.getElementById("grand").innerText = (sub + gstVal).toFixed(2);
+}
+
+function downloadPDF() {
+    html2pdf().from(document.getElementById("quote")).save("Quotation.pdf");
+}
+
+addRow();
+
+</script>
+
+</body>
+</html>
