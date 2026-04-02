@@ -9,32 +9,46 @@
 <style>
 body { font-family: Arial; }
 
-.container { width: 210mm; padding: 15px; }
+.container { width: 210mm; padding: 20px; }
+
+.header { text-align:center; margin-bottom:10px; }
+
+.logo { width:80px; }
+
+h2 { margin:5px 0; }
 
 input, textarea, select {
-    width: 100%;
-    border: none;
-    font-size: 12px;
+    width:100%;
+    border:none;
+    font-size:12px;
+}
+
+.no-print { margin-top:10px; }
+
+@media print {
+    .no-print { display:none; }
+    input, textarea { border:none; }
 }
 
 table {
-    width: 100%;
+    width:100%;
     border-collapse: collapse;
-    margin-top: 10px;
+    margin-top:10px;
+}
+
+th {
+    background:#f2f2f2;
 }
 
 th, td {
-    border: 1px solid black;
-    padding: 5px;
-    font-size: 12px;
-    text-align: center;
+    border:1px solid black;
+    padding:6px;
+    font-size:12px;
+    text-align:center;
 }
 
-.section { margin-top: 10px; }
-
-.logo { width: 80px; }
-
-button { margin-top: 10px; padding: 8px; }
+.section { margin-top:10px; }
+.summary { text-align:right; margin-top:10px; }
 </style>
 </head>
 
@@ -43,34 +57,27 @@ button { margin-top: 10px; padding: 8px; }
 <div id="quote" class="container">
 
 <!-- HEADER -->
-<div style="text-align:center">
+<div class="header">
 <img src="logo.png" class="logo"><br>
-
 <h2>SIDDHI VINAYAK TRADERS</h2>
-<p>12/306, ARYA NAGAR, FIROZABAD UTTAR PRADESH - 283203</p>
+<p>12/306, Arya Nagar, Firozabad, UP - 283203</p>
 <p>GSTIN: 09BFZPK4340C2Z7 | +91 9286107722 | svtjp11@gmail.com</p>
-
 <h3>QUOTATION</h3>
 </div>
 
 <!-- DETAILS -->
-<div class="section">
-Quotation No: <input value="A00001"><br>
+<div>
+Quotation No: <input id="qno" value="A00001"><br>
 Date: <input type="date"><br>
 Due Date: <input type="date">
 </div>
 
 <!-- CLIENT -->
 <div class="section">
-<h3>Client Details</h3>
+<b>Client Details</b><br>
 <input placeholder="Client Name">
 <input placeholder="Mobile">
-<input placeholder="GSTIN">
 <textarea placeholder="Address"></textarea>
-<input placeholder="City">
-<input placeholder="State">
-<input placeholder="PIN Code">
-<input placeholder="Email">
 </div>
 
 <!-- TABLE -->
@@ -83,51 +90,59 @@ Due Date: <input type="date">
 <th>Qty</th>
 <th>Unit</th>
 <th>Rate</th>
-<th>Amount</th>
-<th>CGST</th>
-<th>SGST</th>
 <th>Total</th>
-<th></th>
+<th class="no-print"></th>
 </tr>
 </thead>
 
 <tbody id="tbody"></tbody>
 </table>
 
-<button onclick="addRow()">+ Add Item</button>
+<button class="no-print" onclick="addRow()">+ Add Item</button>
 
 <!-- SUMMARY -->
-<div class="section">
-Subtotal: ₹ <span id="sub">0</span><br>
-CGST: ₹ <span id="cgst">0</span><br>
-SGST: ₹ <span id="sgst">0</span><br>
+<div class="summary">
+<p>Subtotal: ₹ <span id="sub">0</span></p>
+<p>CGST: ₹ <span id="cgst">0</span></p>
+<p>SGST: ₹ <span id="sgst">0</span></p>
 <h3>Total: ₹ <span id="grand">0</span></h3>
 
-<b>Total Quantity:</b> <span id="qty">0</span><br>
-<b>Amount in Words:</b> <span id="words"></span>
+<p><b>Amount in Words:</b> <span id="words"></span></p>
 </div>
 
 <!-- FOOTER -->
 <div class="section">
-<b>Terms & Conditions:</b><br>
-<textarea>Prices valid for 7 days</textarea>
-
-<br><br>
-
-<b>Notes:</b><br>
-<textarea></textarea>
-
-<br><br>
-
+<b>Terms:</b> Prices valid for 7 days<br><br>
 For Siddhi Vinayak Traders<br><br>
 Authorised Signatory
 </div>
 
 </div>
 
-<button onclick="downloadPDF()">Download PDF</button>
+<button class="no-print" onclick="preparePDF()">Download PDF</button>
 
 <script>
+
+// NUMBER TO WORDS
+function numberToWords(num) {
+    const a = ["","One","Two","Three","Four","Five","Six","Seven","Eight","Nine","Ten",
+    "Eleven","Twelve","Thirteen","Fourteen","Fifteen","Sixteen","Seventeen","Eighteen","Nineteen"];
+
+    const b = ["","","Twenty","Thirty","Forty","Fifty","Sixty","Seventy","Eighty","Ninety"];
+
+    function convert(n) {
+        if (n < 20) return a[n];
+        if (n < 100) return b[Math.floor(n/10)] + " " + a[n%10];
+        if (n < 1000) return a[Math.floor(n/100)] + " Hundred " + convert(n%100);
+        if (n < 100000) return convert(Math.floor(n/1000)) + " Thousand " + convert(n%1000);
+        return "";
+    }
+
+    let rupees = Math.floor(num);
+    let paise = Math.round((num - rupees) * 100);
+
+    return convert(rupees) + " Rupees and " + convert(paise) + " Paise Only";
+}
 
 // ADD ROW
 function addRow() {
@@ -138,11 +153,81 @@ function addRow() {
     <td><input></td>
     <td><input type="number" value="18" oninput="calc()"></td>
     <td><input type="number" oninput="calc()"></td>
-
     <td>
         <select>
             <option>gm</option>
             <option>mg</option>
+            <option>kg</option>
+            <option>ml</option>
+            <option>L</option>
+        </select>
+    </td>
+    <td><input type="number" oninput="calc()"></td>
+    <td class="total">0</td>
+    <td class="no-print"><button onclick="del(this)">X</button></td>
+    `;
+
+    tbody.appendChild(tr);
+}
+
+// DELETE
+function del(btn) {
+    btn.parentElement.parentElement.remove();
+    calc();
+}
+
+// CALCULATION
+function calc() {
+    let rows = document.querySelectorAll("#tbody tr");
+
+    let sub = 0, cgst = 0, sgst = 0;
+
+    rows.forEach(r => {
+        let gst = Number(r.cells[2].children[0].value) || 0;
+        let qty = Number(r.cells[3].children[0].value) || 0;
+        let rate = Number(r.cells[5].children[0].value) || 0;
+
+        let amount = qty * rate;
+        let gstVal = amount * gst / 100;
+
+        r.cells[6].innerText = (amount + gstVal).toFixed(2);
+
+        sub += amount;
+        cgst += gstVal/2;
+        sgst += gstVal/2;
+    });
+
+    let grand = sub + cgst + sgst;
+
+    document.getElementById("sub").innerText = sub.toFixed(2);
+    document.getElementById("cgst").innerText = cgst.toFixed(2);
+    document.getElementById("sgst").innerText = sgst.toFixed(2);
+    document.getElementById("grand").innerText = grand.toFixed(2);
+
+    document.getElementById("words").innerText = numberToWords(grand);
+}
+
+// CLEAN BEFORE PDF
+function preparePDF() {
+    document.querySelectorAll("input, textarea").forEach(el => {
+        if (el.value === "") el.style.display = "none";
+    });
+
+    downloadPDF();
+}
+
+// PDF
+function downloadPDF() {
+    html2pdf().from(document.getElementById("quote")).save("Quotation.pdf");
+}
+
+// INIT
+addRow();
+
+</script>
+
+</body>
+</html>            <option>mg</option>
             <option>kg</option>
             <option>ml</option>
             <option>L</option>
