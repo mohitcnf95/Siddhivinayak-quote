@@ -25,11 +25,9 @@ input, textarea, select {
     font-size: 12px;
 }
 
-textarea {
-    white-space: pre-wrap;
-}
+textarea { white-space: pre-wrap; }
 
-/* 🔥 AUTO TABLE */
+/* TABLE */
 table {
     width: 100%;
     border-collapse: collapse;
@@ -44,32 +42,7 @@ th, td {
     word-break: break-word;
 }
 
-/* Item column priority */
-th:nth-child(1), td:nth-child(1) {
-    text-align: left;
-}
-
-/* Compact columns */
-th:nth-child(3),
-th:nth-child(4),
-th:nth-child(5),
-th:nth-child(6),
-td:nth-child(3),
-td:nth-child(4),
-td:nth-child(5),
-td:nth-child(6) {
-    width: 70px;
-    text-align: center;
-}
-
-/* Rate + Total */
-th:nth-child(7),
-th:nth-child(8),
-td:nth-child(7),
-td:nth-child(8) {
-    width: 90px;
-    text-align: center;
-}
+th:nth-child(1), td:nth-child(1) { text-align: left; }
 
 .section { margin-top: 10px; }
 .summary { text-align: right; }
@@ -104,6 +77,7 @@ Date: <input type="date" id="today">
 <input id="clientName" placeholder="Client Name">
 <textarea id="clientAddress" placeholder="Address"></textarea>
 <input id="clientMobile" placeholder="Mobile">
+<input id="clientState" placeholder="State (e.g. UP, Delhi)">
 </div>
 
 <!-- DISPLAY -->
@@ -134,8 +108,11 @@ Date: <input type="date" id="today">
 
 <div class="summary">
 <p>Subtotal: ₹ <span id="sub">0</span></p>
-<p>CGST: ₹ <span id="cgst">0</span></p>
-<p>SGST: ₹ <span id="sgst">0</span></p>
+
+<p id="cgstRow">CGST: ₹ <span id="cgst">0</span></p>
+<p id="sgstRow">SGST: ₹ <span id="sgst">0</span></p>
+<p id="igstRow" style="display:none;">IGST: ₹ <span id="igst">0</span></p>
+
 <p>Round Off: ₹ <span id="round">0</span></p>
 <h3>Total: ₹ <span id="grand">0</span></h3>
 <p><b>Amount in Words:</b> <span id="words"></span></p>
@@ -195,11 +172,15 @@ tr.innerHTML=`
 tbody.appendChild(tr);
 }
 
-// CALC
+// CALCULATION
 function calc(){
-let sub=0,cgst=0,sgst=0;
+
+let sub=0,cgst=0,sgst=0,igst=0;
+
+let state = document.getElementById("clientState").value.toLowerCase().trim();
 
 document.querySelectorAll("#tbody tr").forEach(r=>{
+
 let gst=r.cells[2].children[0].value||0;
 let qty=r.cells[4].children[0].value||0;
 let rate=r.cells[6].children[0].value||0;
@@ -210,18 +191,38 @@ let gstVal=amt*gst/100;
 r.cells[7].innerText=(amt+gstVal).toFixed(2);
 
 sub+=amt;
+
+if(state==="up" || state==="uttar pradesh"){
 cgst+=gstVal/2;
 sgst+=gstVal/2;
+} else {
+igst+=gstVal;
+}
+
 });
 
-let total=sub+cgst+sgst;
+let total=sub+cgst+sgst+igst;
 
 let rounded=Math.round(total);
 let roundOff=rounded-total;
 
+// SHOW TAX TYPE
+if(state==="up" || state==="uttar pradesh"){
+cgstRow.style.display="block";
+sgstRow.style.display="block";
+igstRow.style.display="none";
+} else {
+cgstRow.style.display="none";
+sgstRow.style.display="none";
+igstRow.style.display="block";
+}
+
+// DISPLAY
+subEl=sub.toFixed(2);
 document.getElementById("sub").innerText=sub.toFixed(2);
 document.getElementById("cgst").innerText=cgst.toFixed(2);
 document.getElementById("sgst").innerText=sgst.toFixed(2);
+document.getElementById("igst").innerText=igst.toFixed(2);
 document.getElementById("round").innerText=roundOff.toFixed(2);
 document.getElementById("grand").innerText=rounded.toFixed(2);
 
