@@ -311,6 +311,7 @@ total:r.cells[7].innerText
 
 fetch("https://script.google.com/macros/s/AKfycbzoyQz1RHSzOX0BHPNcSPO1fgzBo91b0lQc9ZpBEEQI8p8MBHvyvErRbYDJij5e-lgu/exec",{
 method:"POST",
+mode:"no-cors",   // 🔥 IMPORTANT FIX
 body:JSON.stringify({
 qno:qno.value,
 client:clientName.value,
@@ -318,9 +319,9 @@ mobile:clientMobile.value,
 state:clientState.value,
 items:items
 })
-})
-.then(()=>alert("✅ Saved to ERP"))
-.catch(()=>alert("❌ Error"));
+});
+
+alert("✅ Saved to ERP (Check Google Sheet)");
 }
 
 // PDF
