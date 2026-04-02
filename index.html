@@ -7,53 +7,69 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
 <style>
-body { font-family: Arial; background:#f5f5f5; }
+body {
+    font-family: Arial;
+    background:#f5f5f5;
+}
 
 .container {
-    width: 210mm;
+    width: 190mm;
     margin: auto;
     background: white;
     padding: 20px;
 }
 
-.header { text-align:center; }
-
-.logo { width:70px; }
-
-input, textarea, select {
-    width:100%;
-    border:none;
-    font-size:12px;
+/* HEADER */
+.header {
+    text-align: center;
 }
 
+.logo {
+    width: 70px;
+}
+
+/* INPUT CLEAN LOOK */
+input, textarea, select {
+    width: 100%;
+    border: none;
+    font-size: 12px;
+}
+
+/* TABLE */
 table {
-    width:100%;
+    width: 100%;
     border-collapse: collapse;
-    margin-top:10px;
+    margin-top: 10px;
 }
 
 th {
-    background:#f2f2f2;
+    background: #f2f2f2;
 }
 
 th, td {
-    border:1px solid black;
-    padding:6px;
-    font-size:12px;
-    text-align:center;
+    border: 1px solid black;
+    padding: 6px;
+    font-size: 12px;
+    text-align: center;
 }
 
-.section { margin-top:10px; }
+/* SECTIONS */
+.section {
+    margin-top: 10px;
+}
 
 .summary {
-    text-align:right;
-    margin-top:10px;
+    text-align: right;
+    margin-top: 10px;
 }
 
-.no-print { margin-top:10px; }
+/* BUTTONS */
+.no-print {
+    margin-top: 10px;
+}
 
-@media print {
-    .no-print { display:none; }
+.hide {
+    display: none !important;
 }
 </style>
 </head>
@@ -73,7 +89,7 @@ th, td {
 
 <!-- DETAILS -->
 <div class="section">
-Quotation No: <input id="qno" value="A00001"><br>
+Quotation No: <input value="A00001"><br>
 Date: <input type="date"><br>
 Due Date: <input type="date">
 </div>
@@ -104,7 +120,7 @@ Due Date: <input type="date">
 <tbody id="tbody"></tbody>
 </table>
 
-<button class="no-print" onclick="addRow()">+ Add Item</button>
+<button id="addBtn" class="no-print" onclick="addRow()">+ Add Item</button>
 
 <!-- SUMMARY -->
 <div class="summary">
@@ -128,7 +144,7 @@ Authorised Signatory
 
 </div>
 
-<button class="no-print" onclick="preparePDF()">Download PDF</button>
+<button id="pdfBtn" class="no-print" onclick="preparePDF()">Download PDF</button>
 
 <script>
 
@@ -141,7 +157,6 @@ function addRow() {
     <td><input></td>
     <td><input type="number" value="18" oninput="calc()"></td>
     <td><input type="number" oninput="calc()"></td>
-
     <td>
         <select>
             <option>gm</option>
@@ -151,26 +166,21 @@ function addRow() {
             <option>L</option>
         </select>
     </td>
-
     <td><input type="number" oninput="calc()"></td>
-
     <td class="total">0</td>
-
-    <td class="no-print">
-        <button onclick="del(this)">X</button>
-    </td>
+    <td class="no-print"><button onclick="del(this)">X</button></td>
     `;
 
     document.getElementById("tbody").appendChild(tr);
 }
 
-// DELETE
+// DELETE ROW
 function del(btn) {
     btn.parentElement.parentElement.remove();
     calc();
 }
 
-// CALCULATION
+// CALCULATE
 function calc() {
     let rows = document.querySelectorAll("#tbody tr");
 
@@ -205,6 +215,7 @@ function calc() {
 
 // NUMBER TO WORDS
 function numberToWords(num) {
+
     const a = ["","One","Two","Three","Four","Five","Six","Seven","Eight","Nine","Ten",
     "Eleven","Twelve","Thirteen","Fourteen","Fifteen","Sixteen","Seventeen","Eighteen","Nineteen"];
 
@@ -214,7 +225,7 @@ function numberToWords(num) {
         if (n < 20) return a[n];
         if (n < 100) return b[Math.floor(n/10)] + " " + a[n%10];
         if (n < 1000) return a[Math.floor(n/100)] + " Hundred " + convert(n%100);
-        if (n < 100000) return convert(Math.floor(n/1000)) + " Thousand " + convert(n%1000);
+        if (n < 1000000) return convert(Math.floor(n/1000)) + " Thousand " + convert(n%1000);
         return "";
     }
 
@@ -224,22 +235,24 @@ function numberToWords(num) {
     return convert(rupees) + " Rupees and " + convert(paise) + " Paise Only";
 }
 
-// CLEAN BEFORE PDF
+// PREPARE PDF
 function preparePDF() {
+
+    // Hide buttons
+    document.getElementById("addBtn").classList.add("hide");
+    document.getElementById("pdfBtn").classList.add("hide");
+
+    // Convert inputs to text
     document.querySelectorAll("input, textarea").forEach(el => {
-        if (el.value === "") el.style.display = "none";
-        else {
+        if (el.value === "") {
+            el.style.display = "none";
+        } else {
             let span = document.createElement("span");
             span.innerText = el.value;
             el.parentNode.replaceChild(span, el);
         }
     });
 
-    downloadPDF();
-}
-
-// PDF
-function downloadPDF() {
     html2pdf().from(document.getElementById("quote")).save("Quotation.pdf");
 }
 
