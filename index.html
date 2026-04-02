@@ -45,7 +45,6 @@ th, td {
     font-size: 12px;
 }
 
-/* COLUMN WIDTHS */
 th:nth-child(1), td:nth-child(1) { width: 30%; text-align: left; }
 th:nth-child(2), td:nth-child(2) { width: 15%; }
 th:nth-child(3), td:nth-child(3) { width: 8%; }
@@ -67,7 +66,6 @@ th:nth-child(8), td:nth-child(8) {
     line-height: 1.3;
 }
 
-/* Hide buttons in PDF */
 @media print {
     button { display: none; }
 }
@@ -91,7 +89,6 @@ Quotation No: <input id="qno"><br>
 Date: <input type="date" id="today">
 </div>
 
-<!-- CLIENT -->
 <div class="section" id="clientInput">
 <b>Client Details</b><br>
 <input id="clientName" placeholder="Client Name">
@@ -122,7 +119,6 @@ Date: <input type="date" id="today">
 </select>
 </div>
 
-<!-- DISPLAY -->
 <div id="clientDisplay" class="section" style="display:none;">
 <b>Client Details</b><br>
 <div id="dName"></div>
@@ -176,7 +172,6 @@ Date: <input type="date" id="today">
 
 <br>
 
-<!-- BANK DETAILS -->
 <b>Bank Details:</b>
 <div class="terms-text">
 Bank: UNION BANK OF INDIA<br>
@@ -193,6 +188,7 @@ Authorised Signatory
 </div>
 
 <button onclick="preparePDF()">Download PDF</button>
+<button onclick="saveToERP()">Save to ERP</button>
 
 <script>
 
@@ -298,9 +294,37 @@ return "";
 return convert(num)+" Rupees Only";
 }
 
+// ERP SAVE
+function saveToERP(){
+
+let items=[];
+
+document.querySelectorAll("#tbody tr").forEach(r=>{
+items.push({
+name:r.cells[0].children[0].value,
+cas:r.cells[1].children[0].value,
+qty:r.cells[4].children[0].value,
+rate:r.cells[6].children[0].value,
+total:r.cells[7].innerText
+});
+});
+
+fetch("https://script.google.com/macros/s/AKfycbzoyQz1RHSzOX0BHPNcSPO1fgzBo91b0lQc9ZpBEEQI8p8MBHvyvErRbYDJij5e-lgu/exec",{
+method:"POST",
+body:JSON.stringify({
+qno:qno.value,
+client:clientName.value,
+mobile:clientMobile.value,
+state:clientState.value,
+items:items
+})
+})
+.then(()=>alert("✅ Saved to ERP"))
+.catch(()=>alert("❌ Error"));
+}
+
 // PDF
 function preparePDF(){
-
 document.getElementById("clientInput").style.display="none";
 document.getElementById("clientDisplay").style.display="block";
 
