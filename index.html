@@ -29,23 +29,46 @@ textarea {
     white-space: pre-wrap;
 }
 
-/* TABLE */
+/* 🔥 AUTO TABLE */
 table {
     width: 100%;
     border-collapse: collapse;
     margin-top: 10px;
-    table-layout: fixed;   /* IMPORTANT */
+    table-layout: auto;
 }
-
-th { background: #f2f2f2; }
 
 th, td {
     border: 1px solid black;
     padding: 6px;
     font-size: 12px;
+    word-break: break-word;
+}
+
+/* Item column priority */
+th:nth-child(1), td:nth-child(1) {
+    text-align: left;
+}
+
+/* Compact columns */
+th:nth-child(3),
+th:nth-child(4),
+th:nth-child(5),
+th:nth-child(6),
+td:nth-child(3),
+td:nth-child(4),
+td:nth-child(5),
+td:nth-child(6) {
+    width: 70px;
     text-align: center;
-    word-wrap: break-word;
-    white-space: normal;
+}
+
+/* Rate + Total */
+th:nth-child(7),
+th:nth-child(8),
+td:nth-child(7),
+td:nth-child(8) {
+    width: 90px;
+    text-align: center;
 }
 
 .section { margin-top: 10px; }
@@ -75,7 +98,7 @@ Quotation No: <input id="qno"><br>
 Date: <input type="date" id="today">
 </div>
 
-<!-- CLIENT INPUT -->
+<!-- CLIENT -->
 <div class="section" id="clientInput">
 <b>Client Details</b><br>
 <input id="clientName" placeholder="Client Name">
@@ -83,7 +106,7 @@ Date: <input type="date" id="today">
 <input id="clientMobile" placeholder="Mobile">
 </div>
 
-<!-- CLIENT DISPLAY -->
+<!-- DISPLAY -->
 <div id="clientDisplay" class="section" style="display:none;">
 <b>Client Details</b><br>
 <div id="dName"></div>
@@ -230,10 +253,7 @@ document.getElementById("clientInput").style.display="none";
 document.getElementById("clientDisplay").style.display="block";
 
 dName.innerText=clientName.value;
-
-// 🔥 FIX: preserve line breaks
-dAddress.innerHTML = clientAddress.value.replace(/\n/g, "<br>");
-
+dAddress.innerHTML=clientAddress.value.replace(/\n/g,"<br>");
 dMobile.innerText=clientMobile.value;
 
 html2pdf().from(document.getElementById("quote")).save();
