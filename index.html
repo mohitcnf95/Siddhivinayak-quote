@@ -8,9 +8,7 @@
 
 <style>
 body { font-family: Arial; }
-
 .container { width: 210mm; padding: 20px; }
-
 .logo { width: 70px; }
 
 table {
@@ -22,7 +20,6 @@ table {
 th, td {
     border: 1px solid black;
     padding: 5px;
-    font-size: 12px;
     text-align: center;
 }
 
@@ -46,7 +43,6 @@ th, td {
 </center>
 
 Quotation No: <input value="A00001"><br><br>
-
 Client Name: <input><br><br>
 
 <table>
@@ -72,16 +68,13 @@ Client Name: <input><br><br>
 
 <button class="no-print" onclick="downloadPDF()">Download PDF</button>
 
-<!-- ✅ IMPORTANT: SCRIPT STARTS HERE -->
 <script>
-
 function addRow() {
     let tr = document.createElement("tr");
 
     tr.innerHTML = `
     <td><input></td>
     <td><input type="number" oninput="calc()"></td>
-
     <td>
         <select>
             <option>gm</option>
@@ -90,14 +83,9 @@ function addRow() {
             <option>ml</option>
         </select>
     </td>
-
     <td><input type="number" oninput="calc()"></td>
-
     <td class="total">0</td>
-
-    <td class="no-print">
-        <button onclick="del(this)">X</button>
-    </td>
+    <td class="no-print"><button onclick="del(this)">X</button></td>
     `;
 
     document.getElementById("tbody").appendChild(tr);
@@ -129,202 +117,7 @@ function downloadPDF() {
     html2pdf().from(document.getElementById("quote")).save("Quotation.pdf");
 }
 
-// default row
 addRow();
-
-</script>
-<!-- ✅ SCRIPT ENDS HERE -->
-
-</body>
-</html>
-<!-- FOOTER -->
-<div class="section">
-<b>Terms:</b> Prices valid for 7 days<br><br>
-For Siddhi Vinayak Traders<br><br>
-Authorised Signatory
-</div>
-
-</div>
-
-<button class="no-print" onclick="preparePDF()">Download PDF</button>
-
-<script>
-
-// NUMBER TO WORDS
-function numberToWords(num) {
-    const a = ["","One","Two","Three","Four","Five","Six","Seven","Eight","Nine","Ten",
-    "Eleven","Twelve","Thirteen","Fourteen","Fifteen","Sixteen","Seventeen","Eighteen","Nineteen"];
-
-    const b = ["","","Twenty","Thirty","Forty","Fifty","Sixty","Seventy","Eighty","Ninety"];
-
-    function convert(n) {
-        if (n < 20) return a[n];
-        if (n < 100) return b[Math.floor(n/10)] + " " + a[n%10];
-        if (n < 1000) return a[Math.floor(n/100)] + " Hundred " + convert(n%100);
-        if (n < 100000) return convert(Math.floor(n/1000)) + " Thousand " + convert(n%1000);
-        return "";
-    }
-
-    let rupees = Math.floor(num);
-    let paise = Math.round((num - rupees) * 100);
-
-    return convert(rupees) + " Rupees and " + convert(paise) + " Paise Only";
-}
-
-// ADD ROW
-function addRow() {
-    let tr = document.createElement("tr");
-
-    tr.innerHTML = `
-    <td><input></td>
-    <td><input></td>
-    <td><input type="number" value="18" oninput="calc()"></td>
-    <td><input type="number" oninput="calc()"></td>
-    <td>
-        <select>
-            <option>gm</option>
-            <option>mg</option>
-            <option>kg</option>
-            <option>ml</option>
-            <option>L</option>
-        </select>
-    </td>
-    <td><input type="number" oninput="calc()"></td>
-    <td class="total">0</td>
-    <td class="no-print"><button onclick="del(this)">X</button></td>
-    `;
-
-    tbody.appendChild(tr);
-}
-
-// DELETE
-function del(btn) {
-    btn.parentElement.parentElement.remove();
-    calc();
-}
-
-// CALCULATION
-function calc() {
-    let rows = document.querySelectorAll("#tbody tr");
-
-    let sub = 0, cgst = 0, sgst = 0;
-
-    rows.forEach(r => {
-        let gst = Number(r.cells[2].children[0].value) || 0;
-        let qty = Number(r.cells[3].children[0].value) || 0;
-        let rate = Number(r.cells[5].children[0].value) || 0;
-
-        let amount = qty * rate;
-        let gstVal = amount * gst / 100;
-
-        r.cells[6].innerText = (amount + gstVal).toFixed(2);
-
-        sub += amount;
-        cgst += gstVal/2;
-        sgst += gstVal/2;
-    });
-
-    let grand = sub + cgst + sgst;
-
-    document.getElementById("sub").innerText = sub.toFixed(2);
-    document.getElementById("cgst").innerText = cgst.toFixed(2);
-    document.getElementById("sgst").innerText = sgst.toFixed(2);
-    document.getElementById("grand").innerText = grand.toFixed(2);
-
-    document.getElementById("words").innerText = numberToWords(grand);
-}
-
-// CLEAN BEFORE PDF
-function preparePDF() {
-    document.querySelectorAll("input, textarea").forEach(el => {
-        if (el.value === "") el.style.display = "none";
-    });
-
-    downloadPDF();
-}
-
-// PDF
-function downloadPDF() {
-    html2pdf().from(document.getElementById("quote")).save("Quotation.pdf");
-}
-
-// INIT
-addRow();
-
-</script>
-
-</body>
-</html>            <option>mg</option>
-            <option>kg</option>
-            <option>ml</option>
-            <option>L</option>
-        </select>
-    </td>
-
-    <td><input type="number" oninput="calc()"></td>
-    <td class="amt">0</td>
-    <td class="cgst">0</td>
-    <td class="sgst">0</td>
-    <td class="total">0</td>
-    <td><button onclick="del(this)">X</button></td>
-    `;
-
-    document.getElementById("tbody").appendChild(tr);
-}
-
-// DELETE ROW
-function del(btn) {
-    btn.parentElement.parentElement.remove();
-    calc();
-}
-
-// CALCULATE
-function calc() {
-    let rows = document.querySelectorAll("#tbody tr");
-
-    let sub = 0, cgst = 0, sgst = 0, qty = 0;
-
-    rows.forEach(r => {
-        let gst = Number(r.cells[2].children[0].value) || 0;
-        let q = Number(r.cells[3].children[0].value) || 0;
-        let rate = Number(r.cells[5].children[0].value) || 0;
-
-        let amount = q * rate;
-        let gstVal = amount * gst / 100;
-
-        let cg = gstVal / 2;
-        let sg = gstVal / 2;
-
-        r.cells[6].innerText = amount.toFixed(2);
-        r.cells[7].innerText = cg.toFixed(2);
-        r.cells[8].innerText = sg.toFixed(2);
-        r.cells[9].innerText = (amount + gstVal).toFixed(2);
-
-        sub += amount;
-        cgst += cg;
-        sgst += sg;
-        qty += q;
-    });
-
-    let grand = sub + cgst + sgst;
-
-    document.getElementById("sub").innerText = sub.toFixed(2);
-    document.getElementById("cgst").innerText = cgst.toFixed(2);
-    document.getElementById("sgst").innerText = sgst.toFixed(2);
-    document.getElementById("grand").innerText = grand.toFixed(2);
-    document.getElementById("qty").innerText = qty;
-
-    document.getElementById("words").innerText = grand.toFixed(2) + " Rupees Only";
-}
-
-// PDF
-function downloadPDF() {
-    html2pdf().from(document.getElementById("quote")).save("Quotation.pdf");
-}
-
-// DEFAULT ROW
-addRow();
-
 </script>
 
 </body>
