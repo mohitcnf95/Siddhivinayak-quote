@@ -2,19 +2,19 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>SVT Quotation System</title>
+<title>SVT Quotation</title>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
 <style>
 body { font-family: Arial; }
-.container { width: 210mm; padding: 15px; }
 
-h3 { margin-bottom: 5px; }
+.container { width: 210mm; padding: 15px; }
 
 input, textarea, select {
     width: 100%;
     border: none;
+    font-size: 12px;
 }
 
 table {
@@ -31,6 +31,7 @@ th, td {
 }
 
 .section { margin-top: 10px; }
+
 .logo { width: 80px; }
 
 button { margin-top: 10px; padding: 8px; }
@@ -52,7 +53,7 @@ button { margin-top: 10px; padding: 8px; }
 <h3>QUOTATION</h3>
 </div>
 
-<!-- QUOTATION DETAILS -->
+<!-- DETAILS -->
 <div class="section">
 Quotation No: <input value="A00001"><br>
 Date: <input type="date"><br>
@@ -62,8 +63,8 @@ Due Date: <input type="date">
 <!-- CLIENT -->
 <div class="section">
 <h3>Client Details</h3>
-<input placeholder="Client Name (Required)">
-<input placeholder="Mobile (Required)">
+<input placeholder="Client Name">
+<input placeholder="Mobile">
 <input placeholder="GSTIN">
 <textarea placeholder="Address"></textarea>
 <input placeholder="City">
@@ -80,6 +81,7 @@ Due Date: <input type="date">
 <th>HSN</th>
 <th>GST%</th>
 <th>Qty</th>
+<th>Unit</th>
 <th>Rate</th>
 <th>Amount</th>
 <th>CGST</th>
@@ -127,6 +129,7 @@ Authorised Signatory
 
 <script>
 
+// ADD ROW
 function addRow() {
     let tr = document.createElement("tr");
 
@@ -135,6 +138,17 @@ function addRow() {
     <td><input></td>
     <td><input type="number" value="18" oninput="calc()"></td>
     <td><input type="number" oninput="calc()"></td>
+
+    <td>
+        <select>
+            <option>gm</option>
+            <option>mg</option>
+            <option>kg</option>
+            <option>ml</option>
+            <option>L</option>
+        </select>
+    </td>
+
     <td><input type="number" oninput="calc()"></td>
     <td class="amt">0</td>
     <td class="cgst">0</td>
@@ -143,23 +157,25 @@ function addRow() {
     <td><button onclick="del(this)">X</button></td>
     `;
 
-    tbody.appendChild(tr);
+    document.getElementById("tbody").appendChild(tr);
 }
 
+// DELETE ROW
 function del(btn) {
     btn.parentElement.parentElement.remove();
     calc();
 }
 
+// CALCULATE
 function calc() {
     let rows = document.querySelectorAll("#tbody tr");
 
     let sub = 0, cgst = 0, sgst = 0, qty = 0;
 
     rows.forEach(r => {
-        let gst = r.cells[2].children[0].value || 0;
-        let q = r.cells[3].children[0].value || 0;
-        let rate = r.cells[4].children[0].value || 0;
+        let gst = Number(r.cells[2].children[0].value) || 0;
+        let q = Number(r.cells[3].children[0].value) || 0;
+        let rate = Number(r.cells[5].children[0].value) || 0;
 
         let amount = q * rate;
         let gstVal = amount * gst / 100;
@@ -167,15 +183,15 @@ function calc() {
         let cg = gstVal / 2;
         let sg = gstVal / 2;
 
-        r.cells[5].innerText = amount.toFixed(2);
-        r.cells[6].innerText = cg.toFixed(2);
-        r.cells[7].innerText = sg.toFixed(2);
-        r.cells[8].innerText = (amount + gstVal).toFixed(2);
+        r.cells[6].innerText = amount.toFixed(2);
+        r.cells[7].innerText = cg.toFixed(2);
+        r.cells[8].innerText = sg.toFixed(2);
+        r.cells[9].innerText = (amount + gstVal).toFixed(2);
 
         sub += amount;
         cgst += cg;
         sgst += sg;
-        qty += Number(q);
+        qty += q;
     });
 
     let grand = sub + cgst + sgst;
@@ -186,56 +202,7 @@ function calc() {
     document.getElementById("grand").innerText = grand.toFixed(2);
     document.getElementById("qty").innerText = qty;
 
-    document.getElementById("words").innerText = grand + " Rupees Only";
-}
-
-function downloadPDF() {
-    html2pdf().from(document.getElementById("quote")).save("Quotation.pdf");
-}
-
-addRow();
-
-</script>
-
-</body>
-</html>        let total = qty * rate;
-        let gstVal = total * g / 100;
-
-        r.cells[5].innerText = (total + gstVal).toFixed(2);
-
-        sub += total;
-        gst += gstVal;
-    });
-
-    document.getElementById("sub").innerText = sub.toFixed(2);
-    document.getElementById("gst").innerText = gst.toFixed(2);
-    document.getElementById("grand").innerText = (sub + gst).toFixed(2);
-
-    document.getElementById("words").innerText = numberToWords(sub + gst);
-}
-
-// NUMBER TO WORDS
-function numberToWords(num) {
-    return num + " Rupees Only";
-}
-
-// SAVE CUSTOMER
-function saveCustomer() {
-    localStorage.setItem("custName", custName.value);
-    localStorage.setItem("custAddr", custAddr.value);
-}
-
-// LOAD CUSTOMER
-window.onload = function() {
-    custName.value = localStorage.getItem("custName") || "";
-    custAddr.value = localStorage.getItem("custAddr") || "";
-    addRow();
-}
-
-// SAVE QUOTE
-function saveQuote() {
-    localStorage.setItem("ref", ++countRef);
-    alert("Quotation Saved!");
+    document.getElementById("words").innerText = grand.toFixed(2) + " Rupees Only";
 }
 
 // PDF
@@ -243,66 +210,7 @@ function downloadPDF() {
     html2pdf().from(document.getElementById("quote")).save("Quotation.pdf");
 }
 
-</script>
-
-</body>
-</html><br>
-<p>Authorized Signatory</p>
-</div>
-
-</div>
-
-<button onclick="downloadPDF()">Download PDF</button>
-
-<script>
-
-function addRow() {
-    let tr = document.createElement("tr");
-
-    tr.innerHTML = `
-    <td><input></td>
-    <td><input type="number" oninput="calc()"></td>
-    <td><select><option>kg</option><option>gm</option></select></td>
-    <td><input type="number" oninput="calc()"></td>
-    <td class="total">0</td>
-    <td><button onclick="del(this)">X</button></td>
-    `;
-
-    document.getElementById("tbody").appendChild(tr);
-}
-
-function del(btn) {
-    btn.parentElement.parentElement.remove();
-    calc();
-}
-
-function calc() {
-    let rows = document.querySelectorAll("#tbody tr");
-    let sub = 0;
-
-    rows.forEach(r => {
-        let qty = r.cells[1].children[0].value || 0;
-        let price = r.cells[3].children[0].value || 0;
-
-        let total = qty * price;
-        r.cells[4].innerText = total.toFixed(2);
-
-        sub += total;
-    });
-
-    document.getElementById("sub").innerText = sub.toFixed(2);
-
-    let gst = document.getElementById("gst").value;
-    let gstVal = sub * gst / 100;
-
-    document.getElementById("gstVal").innerText = gstVal.toFixed(2);
-    document.getElementById("grand").innerText = (sub + gstVal).toFixed(2);
-}
-
-function downloadPDF() {
-    html2pdf().from(document.getElementById("quote")).save("Quotation.pdf");
-}
-
+// DEFAULT ROW
 addRow();
 
 </script>
