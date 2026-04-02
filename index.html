@@ -19,7 +19,6 @@ body {
     padding: 20px;
 }
 
-/* HEADER */
 .header {
     text-align: center;
 }
@@ -28,14 +27,12 @@ body {
     width: 70px;
 }
 
-/* INPUT CLEAN LOOK */
 input, textarea, select {
     width: 100%;
     border: none;
     font-size: 12px;
 }
 
-/* TABLE */
 table {
     width: 100%;
     border-collapse: collapse;
@@ -53,7 +50,6 @@ th, td {
     text-align: center;
 }
 
-/* SECTIONS */
 .section {
     margin-top: 10px;
 }
@@ -63,13 +59,20 @@ th, td {
     margin-top: 10px;
 }
 
-/* BUTTONS */
 .no-print {
     margin-top: 10px;
 }
 
 .hide {
     display: none !important;
+}
+
+/* 🔥 TERMS STYLE */
+.terms-text {
+    font-size: 10.5px;
+    line-height: 1.25;
+    margin-top: 5px;
+    color: #333;
 }
 </style>
 </head>
@@ -90,16 +93,23 @@ th, td {
 <!-- DETAILS -->
 <div class="section">
 Quotation No: <input value="A00001"><br>
-Date: <input type="date"><br>
-Due Date: <input type="date">
+Date: <input type="date">
 </div>
 
-<!-- CLIENT -->
-<div class="section">
+<!-- CLIENT INPUT -->
+<div class="section" id="clientInput">
 <b>Client Details</b><br>
-<input placeholder="Client Name">
-<input placeholder="Mobile">
-<textarea placeholder="Address"></textarea>
+<input id="clientName" placeholder="Client Name">
+<textarea id="clientAddress" placeholder="Address"></textarea>
+<input id="clientMobile" placeholder="Mobile">
+</div>
+
+<!-- CLIENT DISPLAY (PDF) -->
+<div id="clientDisplay" class="section" style="display:none;">
+<b>Client Details</b><br>
+<div id="dName"></div>
+<div id="dAddress"></div>
+<div id="dMobile"></div>
 </div>
 
 <!-- TABLE -->
@@ -131,10 +141,17 @@ Due Date: <input type="date">
 <p><b>Amount in Words:</b> <span id="words"></span></p>
 </div>
 
-<!-- FOOTER -->
+<!-- TERMS -->
 <div class="section">
-<b>Terms & Conditions:</b><br>
-<textarea>Prices valid for 7 days</textarea>
+<b>Terms & Conditions:</b>
+<div class="terms-text">
+1. KINDLY CHECK COMPLETE SPECIFICATIONS BEFORE PLACING YOUR CONFIRMED PURCHASE ORDER. 
+2. GST % & HSN Code may be changed as per Government act. 
+3. Payment 100% Advance by Cheque/RTGS/NEFT. Prices are net. 
+4. Price validity 15 days unless specified. 
+5. Stock details subject to change. 
+6. Goods once sold will not be taken back.
+</div>
 
 <br><br>
 
@@ -238,15 +255,22 @@ function numberToWords(num) {
 // PREPARE PDF
 function preparePDF() {
 
+    // Hide input block
+    document.getElementById("clientInput").style.display = "none";
+    document.getElementById("clientDisplay").style.display = "block";
+
+    // Fill display
+    document.getElementById("dName").innerText = document.getElementById("clientName").value;
+    document.getElementById("dAddress").innerText = document.getElementById("clientAddress").value;
+    document.getElementById("dMobile").innerText = document.getElementById("clientMobile").value;
+
     // Hide buttons
     document.getElementById("addBtn").classList.add("hide");
     document.getElementById("pdfBtn").classList.add("hide");
 
-    // Convert inputs to text
+    // Convert inputs
     document.querySelectorAll("input, textarea").forEach(el => {
-        if (el.value === "") {
-            el.style.display = "none";
-        } else {
+        if (el.value !== "") {
             let span = document.createElement("span");
             span.innerText = el.value;
             el.parentNode.replaceChild(span, el);
