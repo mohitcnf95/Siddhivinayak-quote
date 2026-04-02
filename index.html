@@ -43,9 +43,6 @@ th, td {
 .section { margin-top: 10px; }
 .summary { text-align: right; }
 
-.no-print { margin-top: 10px; }
-.hide { display: none !important; }
-
 .terms-text {
     font-size: 10.5px;
     line-height: 1.25;
@@ -57,7 +54,6 @@ th, td {
 
 <div id="quote" class="container">
 
-<!-- HEADER -->
 <div class="header">
 <img src="logo.png" class="logo"><br>
 <h2>SIDDHI VINAYAK TRADERS</h2>
@@ -66,63 +62,45 @@ th, td {
 <h3>QUOTATION</h3>
 </div>
 
-<!-- DETAILS -->
 <div class="section">
 Quotation No: <input id="qno"><br>
 Date: <input type="date" id="today">
 </div>
 
-<!-- CLIENT INPUT -->
-<div class="section" id="clientInput">
+<div class="section">
 <b>Client Details</b><br>
-<input id="clientName" placeholder="Client Name">
-<textarea id="clientAddress" placeholder="Address"></textarea>
-<input id="clientMobile" placeholder="Mobile">
-
-<select onchange="loadCustomer(this.value)">
-<option value="">Select Saved Customer</option>
-</select>
-
-<button class="no-print" onclick="saveCustomer()">Save Customer</button>
+<input placeholder="Client Name">
+<textarea placeholder="Address"></textarea>
+<input placeholder="Mobile">
 </div>
 
-<!-- CLIENT DISPLAY -->
-<div id="clientDisplay" class="section" style="display:none;">
-<b>Client Details</b><br>
-<div id="dName"></div>
-<div id="dAddress"></div>
-<div id="dMobile"></div>
-</div>
-
-<!-- TABLE -->
 <table>
 <thead>
 <tr>
 <th>Item</th>
-<th>HSN</th>
+<th>CAS</th>
 <th>GST%</th>
+<th>Pack Size</th>
 <th>Qty</th>
 <th>Unit</th>
 <th>Rate</th>
 <th>Total</th>
-<th class="no-print"></th>
 </tr>
 </thead>
 <tbody id="tbody"></tbody>
 </table>
 
-<button id="addBtn" class="no-print" onclick="addRow()">+ Add Item</button>
+<button onclick="addRow()">+ Add Item</button>
 
-<!-- SUMMARY -->
 <div class="summary">
 <p>Subtotal: ₹ <span id="sub">0</span></p>
 <p>CGST: ₹ <span id="cgst">0</span></p>
 <p>SGST: ₹ <span id="sgst">0</span></p>
+<p>Round Off: ₹ <span id="round">0</span></p>
 <h3>Total: ₹ <span id="grand">0</span></h3>
 <p><b>Amount in Words:</b> <span id="words"></span></p>
 </div>
 
-<!-- TERMS -->
 <div class="section">
 <b>Terms & Conditions:</b>
 <div class="terms-text">
@@ -143,143 +121,99 @@ Authorised Signatory
 
 </div>
 
-<button id="pdfBtn" class="no-print" onclick="preparePDF()">Download PDF</button>
+<button onclick="preparePDF()">Download PDF</button>
 
 <script>
 
 // AUTO DATE
 document.getElementById("today").valueAsDate = new Date();
 
-// AUTO QUOTATION NO
+// AUTO Q NO
 let qCount = localStorage.getItem("qCount") || 1;
 document.getElementById("qno").value = "SVT-" + String(qCount).padStart(4,'0');
 
 // ADD ROW
-function addRow() {
-    let tr = document.createElement("tr");
-
-    tr.innerHTML = `
-    <td><input></td>
-    <td><input></td>
-    <td><input value="18" oninput="calc()"></td>
-    <td><input type="number" oninput="calc()"></td>
-    <td>
-        <select>
-            <option>gm</option>
-            <option>mg</option>
-            <option>kg</option>
-            <option>ml</option>
-            <option>L</option>
-        </select>
-    </td>
-    <td><input type="number" oninput="calc()"></td>
-    <td class="total">0</td>
-    <td class="no-print"><button onclick="del(this)">X</button></td>
-    `;
-
-    tbody.appendChild(tr);
+function addRow(){
+let tr=document.createElement("tr");
+tr.innerHTML=`
+<td><input></td>
+<td><input></td>
+<td><input value="18" oninput="calc()"></td>
+<td><input placeholder="e.g. 500gm"></td>
+<td><input type="number" oninput="calc()"></td>
+<td>
+<select>
+<option>gm</option>
+<option>mg</option>
+<option>kg</option>
+<option>ml</option>
+<option>L</option>
+</select>
+</td>
+<td><input type="number" oninput="calc()"></td>
+<td class="total">0</td>`;
+tbody.appendChild(tr);
 }
 
-// DELETE
-function del(btn) {
-    btn.parentElement.parentElement.remove();
-    calc();
-}
+// CALC
+function calc(){
+let sub=0,cgst=0,sgst=0;
 
-// CALCULATION
-function calc() {
-    let rows = document.querySelectorAll("#tbody tr");
+document.querySelectorAll("#tbody tr").forEach(r=>{
+let gst=r.cells[2].children[0].value||0;
+let qty=r.cells[4].children[0].value||0;
+let rate=r.cells[6].children[0].value||0;
 
-    let sub = 0, cgst = 0, sgst = 0;
+let amt=qty*rate;
+let gstVal=amt*gst/100;
 
-    rows.forEach(r => {
-        let gst = r.cells[2].children[0].value || 0;
-        let qty = r.cells[3].children[0].value || 0;
-        let rate = r.cells[5].children[0].value || 0;
+r.cells[7].innerText=(amt+gstVal).toFixed(2);
 
-        let amount = qty * rate;
-        let gstVal = amount * gst / 100;
-
-        let total = amount + gstVal;
-
-        r.cells[6].innerText = total.toFixed(2);
-
-        sub += amount;
-        cgst += gstVal / 2;
-        sgst += gstVal / 2;
-    });
-
-    let grand = sub + cgst + sgst;
-
-    document.getElementById("sub").innerText = sub.toFixed(2);
-    document.getElementById("cgst").innerText = cgst.toFixed(2);
-    document.getElementById("sgst").innerText = sgst.toFixed(2);
-    document.getElementById("grand").innerText = grand.toFixed(2);
-
-    document.getElementById("words").innerText = grand + " Rupees Only";
-}
-
-// SAVE CUSTOMER
-function saveCustomer(){
-let data={
-name:clientName.value,
-addr:clientAddress.value,
-mob:clientMobile.value
-};
-let arr=JSON.parse(localStorage.getItem("cust")||"[]");
-arr.push(data);
-localStorage.setItem("cust",JSON.stringify(arr));
-loadDropdown();
-alert("Saved");
-}
-
-// LOAD DROPDOWN
-function loadDropdown(){
-let sel=document.querySelector("select");
-sel.innerHTML='<option>Select Saved Customer</option>';
-(JSON.parse(localStorage.getItem("cust")||[])).forEach((c,i)=>{
-let opt=document.createElement("option");
-opt.value=i;
-opt.text=c.name;
-sel.appendChild(opt);
+sub+=amt;
+cgst+=gstVal/2;
+sgst+=gstVal/2;
 });
+
+let total=sub+cgst+sgst;
+
+// ROUND OFF
+let rounded=Math.round(total);
+let roundOff=rounded-total;
+
+document.getElementById("sub").innerText=sub.toFixed(2);
+document.getElementById("cgst").innerText=cgst.toFixed(2);
+document.getElementById("sgst").innerText=sgst.toFixed(2);
+document.getElementById("round").innerText=roundOff.toFixed(2);
+document.getElementById("grand").innerText=rounded.toFixed(2);
+
+document.getElementById("words").innerText=numberToWords(rounded);
 }
 
-// LOAD CUSTOMER
-function loadCustomer(i){
-let c=JSON.parse(localStorage.getItem("cust"))[i];
-clientName.value=c.name;
-clientAddress.value=c.addr;
-clientMobile.value=c.mob;
+// NUMBER TO WORDS
+function numberToWords(num){
+const a=["","One","Two","Three","Four","Five","Six","Seven","Eight","Nine","Ten",
+"Eleven","Twelve","Thirteen","Fourteen","Fifteen","Sixteen","Seventeen","Eighteen","Nineteen"];
+
+const b=["","","Twenty","Thirty","Forty","Fifty","Sixty","Seventy","Eighty","Ninety"];
+
+function convert(n){
+if(n<20)return a[n];
+if(n<100)return b[Math.floor(n/10)]+" "+a[n%10];
+if(n<1000)return a[Math.floor(n/100)]+" Hundred "+convert(n%100);
+if(n<1000000)return convert(Math.floor(n/1000))+" Thousand "+convert(n%1000);
+return "";
+}
+
+return convert(num)+" Rupees Only";
 }
 
 // PDF
 function preparePDF(){
-
-document.getElementById("clientInput").style.display="none";
-document.getElementById("clientDisplay").style.display="block";
-
-dName.innerText=clientName.value;
-dAddress.innerText=clientAddress.value;
-dMobile.innerText=clientMobile.value;
-
-addBtn.classList.add("hide");
-pdfBtn.classList.add("hide");
-
-document.querySelectorAll("input,textarea").forEach(el=>{
-if(el.value!==""){
-let span=document.createElement("span");
-span.innerText=el.value;
-el.parentNode.replaceChild(span,el);
-}
-});
-
 html2pdf().from(document.getElementById("quote")).save();
 }
 
 // INIT
 addRow();
-loadDropdown();
 
 </script>
 
