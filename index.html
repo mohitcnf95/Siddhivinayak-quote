@@ -7,10 +7,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
 <style>
-body {
-    font-family: Arial;
-    background:#f5f5f5;
-}
+body { font-family: Arial; background:#f5f5f5; }
 
 .container {
     width: 190mm;
@@ -19,13 +16,8 @@ body {
     padding: 20px;
 }
 
-.header {
-    text-align: center;
-}
-
-.logo {
-    width: 70px;
-}
+.header { text-align: center; }
+.logo { width: 70px; }
 
 input, textarea, select {
     width: 100%;
@@ -39,9 +31,7 @@ table {
     margin-top: 10px;
 }
 
-th {
-    background: #f2f2f2;
-}
+th { background: #f2f2f2; }
 
 th, td {
     border: 1px solid black;
@@ -50,29 +40,15 @@ th, td {
     text-align: center;
 }
 
-.section {
-    margin-top: 10px;
-}
+.section { margin-top: 10px; }
+.summary { text-align: right; }
 
-.summary {
-    text-align: right;
-    margin-top: 10px;
-}
+.no-print { margin-top: 10px; }
+.hide { display: none !important; }
 
-.no-print {
-    margin-top: 10px;
-}
-
-.hide {
-    display: none !important;
-}
-
-/* 🔥 TERMS STYLE */
 .terms-text {
     font-size: 10.5px;
     line-height: 1.25;
-    margin-top: 5px;
-    color: #333;
 }
 </style>
 </head>
@@ -92,8 +68,8 @@ th, td {
 
 <!-- DETAILS -->
 <div class="section">
-Quotation No: <input value="A00001"><br>
-Date: <input type="date">
+Quotation No: <input id="qno"><br>
+Date: <input type="date" id="today">
 </div>
 
 <!-- CLIENT INPUT -->
@@ -102,9 +78,15 @@ Date: <input type="date">
 <input id="clientName" placeholder="Client Name">
 <textarea id="clientAddress" placeholder="Address"></textarea>
 <input id="clientMobile" placeholder="Mobile">
+
+<select onchange="loadCustomer(this.value)">
+<option value="">Select Saved Customer</option>
+</select>
+
+<button class="no-print" onclick="saveCustomer()">Save Customer</button>
 </div>
 
-<!-- CLIENT DISPLAY (PDF) -->
+<!-- CLIENT DISPLAY -->
 <div id="clientDisplay" class="section" style="display:none;">
 <b>Client Details</b><br>
 <div id="dName"></div>
@@ -126,7 +108,6 @@ Date: <input type="date">
 <th class="no-print"></th>
 </tr>
 </thead>
-
 <tbody id="tbody"></tbody>
 </table>
 
@@ -147,7 +128,7 @@ Date: <input type="date">
 <div class="terms-text">
 1. KINDLY CHECK COMPLETE SPECIFICATIONS BEFORE PLACING YOUR CONFIRMED PURCHASE ORDER. 
 2. GST % & HSN Code may be changed as per Government act. 
-3. Payment 100% Advance by Cheque/RTGS/NEFT. Prices are net. 
+3. Payment 100% Advance by Cheque/RTGS/NEFT. Prices are nett. 
 4. Price validity 15 days unless specified. 
 5. Stock details subject to change. 
 6. Goods once sold will not be taken back.
@@ -165,6 +146,13 @@ Authorised Signatory
 
 <script>
 
+// AUTO DATE
+document.getElementById("today").valueAsDate = new Date();
+
+// AUTO QUOTATION NO
+let qCount = localStorage.getItem("qCount") || 1;
+document.getElementById("qno").value = "SVT-" + String(qCount).padStart(4,'0');
+
 // ADD ROW
 function addRow() {
     let tr = document.createElement("tr");
@@ -172,7 +160,7 @@ function addRow() {
     tr.innerHTML = `
     <td><input></td>
     <td><input></td>
-    <td><input type="number" value="18" oninput="calc()"></td>
+    <td><input value="18" oninput="calc()"></td>
     <td><input type="number" oninput="calc()"></td>
     <td>
         <select>
@@ -188,25 +176,25 @@ function addRow() {
     <td class="no-print"><button onclick="del(this)">X</button></td>
     `;
 
-    document.getElementById("tbody").appendChild(tr);
+    tbody.appendChild(tr);
 }
 
-// DELETE ROW
+// DELETE
 function del(btn) {
     btn.parentElement.parentElement.remove();
     calc();
 }
 
-// CALCULATE
+// CALCULATION
 function calc() {
     let rows = document.querySelectorAll("#tbody tr");
 
     let sub = 0, cgst = 0, sgst = 0;
 
     rows.forEach(r => {
-        let gst = Number(r.cells[2].children[0].value) || 0;
-        let qty = Number(r.cells[3].children[0].value) || 0;
-        let rate = Number(r.cells[5].children[0].value) || 0;
+        let gst = r.cells[2].children[0].value || 0;
+        let qty = r.cells[3].children[0].value || 0;
+        let rate = r.cells[5].children[0].value || 0;
 
         let amount = qty * rate;
         let gstVal = amount * gst / 100;
@@ -227,61 +215,70 @@ function calc() {
     document.getElementById("sgst").innerText = sgst.toFixed(2);
     document.getElementById("grand").innerText = grand.toFixed(2);
 
-    document.getElementById("words").innerText = numberToWords(grand);
+    document.getElementById("words").innerText = grand + " Rupees Only";
 }
 
-// NUMBER TO WORDS
-function numberToWords(num) {
-
-    const a = ["","One","Two","Three","Four","Five","Six","Seven","Eight","Nine","Ten",
-    "Eleven","Twelve","Thirteen","Fourteen","Fifteen","Sixteen","Seventeen","Eighteen","Nineteen"];
-
-    const b = ["","","Twenty","Thirty","Forty","Fifty","Sixty","Seventy","Eighty","Ninety"];
-
-    function convert(n) {
-        if (n < 20) return a[n];
-        if (n < 100) return b[Math.floor(n/10)] + " " + a[n%10];
-        if (n < 1000) return a[Math.floor(n/100)] + " Hundred " + convert(n%100);
-        if (n < 1000000) return convert(Math.floor(n/1000)) + " Thousand " + convert(n%1000);
-        return "";
-    }
-
-    let rupees = Math.floor(num);
-    let paise = Math.round((num - rupees) * 100);
-
-    return convert(rupees) + " Rupees and " + convert(paise) + " Paise Only";
+// SAVE CUSTOMER
+function saveCustomer(){
+let data={
+name:clientName.value,
+addr:clientAddress.value,
+mob:clientMobile.value
+};
+let arr=JSON.parse(localStorage.getItem("cust")||"[]");
+arr.push(data);
+localStorage.setItem("cust",JSON.stringify(arr));
+loadDropdown();
+alert("Saved");
 }
 
-// PREPARE PDF
-function preparePDF() {
+// LOAD DROPDOWN
+function loadDropdown(){
+let sel=document.querySelector("select");
+sel.innerHTML='<option>Select Saved Customer</option>';
+(JSON.parse(localStorage.getItem("cust")||[])).forEach((c,i)=>{
+let opt=document.createElement("option");
+opt.value=i;
+opt.text=c.name;
+sel.appendChild(opt);
+});
+}
 
-    // Hide input block
-    document.getElementById("clientInput").style.display = "none";
-    document.getElementById("clientDisplay").style.display = "block";
+// LOAD CUSTOMER
+function loadCustomer(i){
+let c=JSON.parse(localStorage.getItem("cust"))[i];
+clientName.value=c.name;
+clientAddress.value=c.addr;
+clientMobile.value=c.mob;
+}
 
-    // Fill display
-    document.getElementById("dName").innerText = document.getElementById("clientName").value;
-    document.getElementById("dAddress").innerText = document.getElementById("clientAddress").value;
-    document.getElementById("dMobile").innerText = document.getElementById("clientMobile").value;
+// PDF
+function preparePDF(){
 
-    // Hide buttons
-    document.getElementById("addBtn").classList.add("hide");
-    document.getElementById("pdfBtn").classList.add("hide");
+document.getElementById("clientInput").style.display="none";
+document.getElementById("clientDisplay").style.display="block";
 
-    // Convert inputs
-    document.querySelectorAll("input, textarea").forEach(el => {
-        if (el.value !== "") {
-            let span = document.createElement("span");
-            span.innerText = el.value;
-            el.parentNode.replaceChild(span, el);
-        }
-    });
+dName.innerText=clientName.value;
+dAddress.innerText=clientAddress.value;
+dMobile.innerText=clientMobile.value;
 
-    html2pdf().from(document.getElementById("quote")).save("Quotation.pdf");
+addBtn.classList.add("hide");
+pdfBtn.classList.add("hide");
+
+document.querySelectorAll("input,textarea").forEach(el=>{
+if(el.value!==""){
+let span=document.createElement("span");
+span.innerText=el.value;
+el.parentNode.replaceChild(span,el);
+}
+});
+
+html2pdf().from(document.getElementById("quote")).save();
 }
 
 // INIT
 addRow();
+loadDropdown();
 
 </script>
 
