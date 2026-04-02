@@ -120,7 +120,6 @@ Date: <input type="date" id="today">
 <option value="Jharkhand">Jharkhand</option>
 <option value="Assam">Assam</option>
 </select>
-
 </div>
 
 <!-- DISPLAY -->
@@ -173,6 +172,16 @@ Date: <input type="date" id="today">
 5. Stock details subject to change. 
 6. Goods once sold will not be taken back.
 7. The mentioned item/items in the quotation are for R&D purpose only. Not for other uses.
+</div>
+
+<br>
+
+<!-- BANK DETAILS -->
+<b>Bank Details:</b>
+<div class="terms-text">
+Bank: UNION BANK OF INDIA<br>
+A/C No.: 424301010040874<br>
+IFSC Code: UBIN0542431
 </div>
 
 <br><br>
@@ -252,7 +261,6 @@ let total = sub + cgst + sgst + igst;
 let rounded = Math.round(total);
 let roundOff = rounded - total;
 
-// SHOW TAX TYPE
 if(isUP){
 cgstRow.style.display="block";
 sgstRow.style.display="block";
@@ -263,7 +271,6 @@ sgstRow.style.display="none";
 igstRow.style.display="block";
 }
 
-// DISPLAY
 document.getElementById("sub").innerText=sub.toFixed(2);
 document.getElementById("cgst").innerText=cgst.toFixed(2);
 document.getElementById("sgst").innerText=sgst.toFixed(2);
