@@ -25,10 +25,16 @@ input, textarea, select {
     font-size: 12px;
 }
 
+textarea {
+    white-space: pre-wrap;
+}
+
+/* TABLE */
 table {
     width: 100%;
     border-collapse: collapse;
     margin-top: 10px;
+    table-layout: fixed;   /* IMPORTANT */
 }
 
 th { background: #f2f2f2; }
@@ -38,6 +44,8 @@ th, td {
     padding: 6px;
     font-size: 12px;
     text-align: center;
+    word-wrap: break-word;
+    white-space: normal;
 }
 
 .section { margin-top: 10px; }
@@ -67,11 +75,20 @@ Quotation No: <input id="qno"><br>
 Date: <input type="date" id="today">
 </div>
 
-<div class="section">
+<!-- CLIENT INPUT -->
+<div class="section" id="clientInput">
 <b>Client Details</b><br>
-<input placeholder="Client Name">
-<textarea placeholder="Address"></textarea>
-<input placeholder="Mobile">
+<input id="clientName" placeholder="Client Name">
+<textarea id="clientAddress" placeholder="Address"></textarea>
+<input id="clientMobile" placeholder="Mobile">
+</div>
+
+<!-- CLIENT DISPLAY -->
+<div id="clientDisplay" class="section" style="display:none;">
+<b>Client Details</b><br>
+<div id="dName"></div>
+<div id="dAddress"></div>
+<div id="dMobile"></div>
 </div>
 
 <table>
@@ -176,7 +193,6 @@ sgst+=gstVal/2;
 
 let total=sub+cgst+sgst;
 
-// ROUND OFF
 let rounded=Math.round(total);
 let roundOff=rounded-total;
 
@@ -209,6 +225,17 @@ return convert(num)+" Rupees Only";
 
 // PDF
 function preparePDF(){
+
+document.getElementById("clientInput").style.display="none";
+document.getElementById("clientDisplay").style.display="block";
+
+dName.innerText=clientName.value;
+
+// 🔥 FIX: preserve line breaks
+dAddress.innerHTML = clientAddress.value.replace(/\n/g, "<br>");
+
+dMobile.innerText=clientMobile.value;
+
 html2pdf().from(document.getElementById("quote")).save();
 }
 
