@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>SVT Quotation</title>
+<title>Quotation</title>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
@@ -11,44 +11,26 @@ body { font-family: Arial; }
 
 .container { width: 210mm; padding: 20px; }
 
-.header { text-align:center; margin-bottom:10px; }
-
-.logo { width:80px; }
-
-h2 { margin:5px 0; }
-
-input, textarea, select {
-    width:100%;
-    border:none;
-    font-size:12px;
-}
-
-.no-print { margin-top:10px; }
-
-@media print {
-    .no-print { display:none; }
-    input, textarea { border:none; }
-}
+.logo { width: 70px; }
 
 table {
-    width:100%;
+    width: 100%;
     border-collapse: collapse;
-    margin-top:10px;
-}
-
-th {
-    background:#f2f2f2;
+    margin-top: 10px;
 }
 
 th, td {
-    border:1px solid black;
-    padding:6px;
-    font-size:12px;
-    text-align:center;
+    border: 1px solid black;
+    padding: 5px;
+    font-size: 12px;
+    text-align: center;
 }
 
-.section { margin-top:10px; }
-.summary { text-align:right; margin-top:10px; }
+.no-print { margin-top: 10px; }
+
+@media print {
+    .no-print { display: none; }
+}
 </style>
 </head>
 
@@ -56,37 +38,21 @@ th, td {
 
 <div id="quote" class="container">
 
-<!-- HEADER -->
-<div class="header">
+<center>
 <img src="logo.png" class="logo"><br>
 <h2>SIDDHI VINAYAK TRADERS</h2>
-<p>12/306, Arya Nagar, Firozabad, UP - 283203</p>
-<p>GSTIN: 09BFZPK4340C2Z7 | +91 9286107722 | svtjp11@gmail.com</p>
+<p>Firozabad, UP</p>
 <h3>QUOTATION</h3>
-</div>
+</center>
 
-<!-- DETAILS -->
-<div>
-Quotation No: <input id="qno" value="A00001"><br>
-Date: <input type="date"><br>
-Due Date: <input type="date">
-</div>
+Quotation No: <input value="A00001"><br><br>
 
-<!-- CLIENT -->
-<div class="section">
-<b>Client Details</b><br>
-<input placeholder="Client Name">
-<input placeholder="Mobile">
-<textarea placeholder="Address"></textarea>
-</div>
+Client Name: <input><br><br>
 
-<!-- TABLE -->
 <table>
 <thead>
 <tr>
 <th>Item</th>
-<th>HSN</th>
-<th>GST%</th>
 <th>Qty</th>
 <th>Unit</th>
 <th>Rate</th>
@@ -100,16 +66,77 @@ Due Date: <input type="date">
 
 <button class="no-print" onclick="addRow()">+ Add Item</button>
 
-<!-- SUMMARY -->
-<div class="summary">
-<p>Subtotal: ₹ <span id="sub">0</span></p>
-<p>CGST: ₹ <span id="cgst">0</span></p>
-<p>SGST: ₹ <span id="sgst">0</span></p>
 <h3>Total: ₹ <span id="grand">0</span></h3>
 
-<p><b>Amount in Words:</b> <span id="words"></span></p>
 </div>
 
+<button class="no-print" onclick="downloadPDF()">Download PDF</button>
+
+<!-- ✅ IMPORTANT: SCRIPT STARTS HERE -->
+<script>
+
+function addRow() {
+    let tr = document.createElement("tr");
+
+    tr.innerHTML = `
+    <td><input></td>
+    <td><input type="number" oninput="calc()"></td>
+
+    <td>
+        <select>
+            <option>gm</option>
+            <option>mg</option>
+            <option>kg</option>
+            <option>ml</option>
+        </select>
+    </td>
+
+    <td><input type="number" oninput="calc()"></td>
+
+    <td class="total">0</td>
+
+    <td class="no-print">
+        <button onclick="del(this)">X</button>
+    </td>
+    `;
+
+    document.getElementById("tbody").appendChild(tr);
+}
+
+function del(btn) {
+    btn.parentElement.parentElement.remove();
+    calc();
+}
+
+function calc() {
+    let rows = document.querySelectorAll("#tbody tr");
+    let total = 0;
+
+    rows.forEach(r => {
+        let qty = Number(r.cells[1].children[0].value) || 0;
+        let rate = Number(r.cells[3].children[0].value) || 0;
+
+        let val = qty * rate;
+        r.cells[4].innerText = val.toFixed(2);
+
+        total += val;
+    });
+
+    document.getElementById("grand").innerText = total.toFixed(2);
+}
+
+function downloadPDF() {
+    html2pdf().from(document.getElementById("quote")).save("Quotation.pdf");
+}
+
+// default row
+addRow();
+
+</script>
+<!-- ✅ SCRIPT ENDS HERE -->
+
+</body>
+</html>
 <!-- FOOTER -->
 <div class="section">
 <b>Terms:</b> Prices valid for 7 days<br><br>
