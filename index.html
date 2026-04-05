@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>SVT Quotation</title>
+<title>SVT Document</title>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
@@ -44,16 +44,14 @@ th, td {
     font-size: 12px;
 }
 
-/* COLUMN WIDTHS UPDATED */
 th:nth-child(1), td:nth-child(1) { width: 28%; text-align: left; }
 th:nth-child(2), td:nth-child(2) { width: 14%; }
-th:nth-child(3), td:nth-child(3) { width: 10%; }
-th:nth-child(4), td:nth-child(4) { width: 12%; }
+th:nth-child(3), td:nth-child(3) { width: 12%; }
+th:nth-child(4), td:nth-child(4) { width: 8%; }
 th:nth-child(5), td:nth-child(5) { width: 8%; }
-th:nth-child(6), td:nth-child(6) { width: 8%; }
-th:nth-child(7), td:nth-child(7) { width: 10%; }
-th:nth-child(8), td:nth-child(8) { width: 8%; }
-th:nth-child(9), td:nth-child(9) { width: 12%; text-align: right; }
+th:nth-child(6), td:nth-child(6) { width: 10%; }
+th:nth-child(7), td:nth-child(7) { width: 8%; }
+th:nth-child(8), td:nth-child(8) { width: 12%; text-align: right; }
 
 .section { margin-top: 12px; }
 .summary { text-align: right; margin-top: 15px; }
@@ -79,17 +77,19 @@ th:nth-child(9), td:nth-child(9) { width: 12%; text-align: right; }
 <p>12/306, Arya Nagar, Firozabad, UP - 283203</p>
 <p>GSTIN: 09BFZPK4340C2Z7 | +91 9286107722 | svtjp11@gmail.com</p>
 
-<!-- 🔥 TOGGLE -->
-<select id="docType" onchange="updateTitle()">
-<option value="QUOTATION">QUOTATION</option>
-<option value="PROFORMA INVOICE">PROFORMA INVOICE</option>
+<div style="margin-top:10px;">
+<label style="font-size:12px;">Document Type:</label>
+<select id="docType" onchange="updateTitle()" style="width:200px;">
+<option value="QUOTATION">Quotation</option>
+<option value="PROFORMA INVOICE">Proforma Invoice</option>
 </select>
+</div>
 
 <h3 id="docTitle">QUOTATION</h3>
 </div>
 
 <div class="section">
-Quotation No: <input id="qno"><br>
+Document No: <input id="qno"><br>
 Date: <input type="date" id="today">
 </div>
 
@@ -139,7 +139,7 @@ Date: <input type="date" id="today">
 <th>Qty</th>
 <th>Unit</th>
 <th>Rate</th>
-<th>GST%</th> <!-- 🔥 MOVED -->
+<th>GST%</th>
 <th>Total</th>
 </tr>
 </thead>
@@ -196,7 +196,7 @@ Authorised Signatory
 
 <script>
 
-// 🔥 TITLE SWITCH
+// TITLE SWITCH
 function updateTitle(){
 document.getElementById("docTitle").innerText =
 document.getElementById("docType").value;
@@ -205,7 +205,7 @@ document.getElementById("docType").value;
 // AUTO DATE
 document.getElementById("today").valueAsDate = new Date();
 
-// AUTO QUOTE NO
+// AUTO NUMBER
 let qCount = localStorage.getItem("qCount") || 1;
 document.getElementById("qno").value = "SVT-" + String(qCount).padStart(4,'0');
 
@@ -227,82 +227,4 @@ tr.innerHTML=`
 </select>
 </td>
 <td><input type="number" oninput="calc()"></td>
-<td><input value="18" oninput="calc()"></td>
-<td class="total">0</td>`;
-tbody.appendChild(tr);
-}
-
-// CALCULATION
-function calc(){
-
-let sub=0,cgst=0,sgst=0,igst=0;
-
-let state = clientState.value;
-let isUP = (state === "UP");
-
-document.querySelectorAll("#tbody tr").forEach(r=>{
-
-let qty = Number(r.cells[3].children[0].value) || 0;
-let rate = Number(r.cells[5].children[0].value) || 0;
-let gst = Number(r.cells[6].children[0].value) || 0;
-
-let amt = qty * rate;
-let gstVal = amt * gst / 100;
-
-r.cells[7].innerText = (amt + gstVal).toFixed(2);
-
-sub += amt;
-
-if(isUP){
-cgst += gstVal/2;
-sgst += gstVal/2;
-} else {
-igst += gstVal;
-}
-
-});
-
-let total = sub + cgst + sgst + igst;
-
-let rounded = Math.round(total);
-let roundOff = rounded - total;
-
-cgstRow.style.display = isUP ? "block" : "none";
-sgstRow.style.display = isUP ? "block" : "none";
-igstRow.style.display = isUP ? "none" : "block";
-
-sub.innerText = sub.toFixed(2);
-cgst.innerText = cgst.toFixed(2);
-sgst.innerText = sgst.toFixed(2);
-igst.innerText = igst.toFixed(2);
-round.innerText = roundOff.toFixed(2);
-grand.innerText = rounded.toFixed(2);
-
-words.innerText = numberToWords(rounded);
-}
-
-// NUMBER TO WORDS (same)
-function numberToWords(num){
-const a=["","One","Two","Three","Four","Five","Six","Seven","Eight","Nine","Ten",
-"Eleven","Twelve","Thirteen","Fourteen","Fifteen","Sixteen","Seventeen","Eighteen","Nineteen"];
-const b=["","","Twenty","Thirty","Forty","Fifty","Sixty","Seventy","Eighty","Ninety"];
-function convert(n){
-if(n<20)return a[n];
-if(n<100)return b[Math.floor(n/10)]+" "+a[n%10];
-if(n<1000)return a[Math.floor(n/100)]+" Hundred "+convert(n%100);
-if(n<1000000)return convert(Math.floor(n/1000))+" Thousand "+convert(n%1000);
-return "";
-}
-return convert(num)+" Rupees Only";
-}
-
-// ERP + PDF unchanged
-function saveToERP(){ alert("ERP working"); }
-function preparePDF(){ html2pdf().from(document.getElementById("quote")).save(); }
-
-addRow();
-
-</script>
-
-</body>
-</html>
+<td><input value="18"
