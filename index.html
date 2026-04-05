@@ -16,9 +16,11 @@ body { font-family: Arial; background:#f5f5f5; }
     padding: 25px;
 }
 
+/* HEADER */
 .header { text-align: center; }
 .logo { width: 70px; }
 
+/* INPUT */
 input, textarea, select {
     width: 100%;
     border: none;
@@ -27,31 +29,30 @@ input, textarea, select {
 
 textarea { white-space: pre-wrap; }
 
+/* TABLE */
 table {
     width: 100%;
     border-collapse: collapse;
     margin-top: 12px;
-}
-
-th {
-    background: #f5f5f5;
-    font-weight: 600;
+    table-layout: fixed;
 }
 
 th, td {
     border: 1px solid #444;
-    padding: 8px;
+    padding: 6px;
     font-size: 12px;
+    word-wrap: break-word;
 }
 
-th:nth-child(1), td:nth-child(1) { width: 28%; text-align: left; }
-th:nth-child(2), td:nth-child(2) { width: 14%; }
-th:nth-child(3), td:nth-child(3) { width: 12%; }
-th:nth-child(4), td:nth-child(4) { width: 8%; }
-th:nth-child(5), td:nth-child(5) { width: 8%; }
-th:nth-child(6), td:nth-child(6) { width: 10%; }
-th:nth-child(7), td:nth-child(7) { width: 8%; }
-th:nth-child(8), td:nth-child(8) { width: 12%; text-align: right; }
+/* CLEAN COLUMN WIDTHS */
+th:nth-child(1) { width: 30%; text-align:left; }
+th:nth-child(2) { width: 14%; }
+th:nth-child(3) { width: 12%; }
+th:nth-child(4) { width: 8%; }
+th:nth-child(5) { width: 8%; }
+th:nth-child(6) { width: 10%; }
+th:nth-child(7) { width: 8%; }
+th:nth-child(8) { width: 10%; }
 
 .section { margin-top: 12px; }
 .summary { text-align: right; margin-top: 15px; }
@@ -61,6 +62,12 @@ th:nth-child(8), td:nth-child(8) { width: 12%; text-align: right; }
     line-height: 1.3;
 }
 
+.doc-select {
+    margin-top:10px;
+    width:200px;
+}
+
+/* PRINT */
 @media print {
     button { display: none; }
 }
@@ -77,13 +84,10 @@ th:nth-child(8), td:nth-child(8) { width: 12%; text-align: right; }
 <p>12/306, Arya Nagar, Firozabad, UP - 283203</p>
 <p>GSTIN: 09BFZPK4340C2Z7 | +91 9286107722 | svtjp11@gmail.com</p>
 
-<div style="margin-top:10px;">
-<label style="font-size:12px;">Document Type:</label>
-<select id="docType" onchange="updateTitle()" style="width:200px;">
+<select id="docType" class="doc-select" onchange="updateTitle()">
 <option value="QUOTATION">Quotation</option>
 <option value="PROFORMA INVOICE">Proforma Invoice</option>
 </select>
-</div>
 
 <h3 id="docTitle">QUOTATION</h3>
 </div>
@@ -109,17 +113,6 @@ Date: <input type="date" id="today">
 <option value="Rajasthan">Rajasthan</option>
 <option value="Punjab">Punjab</option>
 <option value="Bihar">Bihar</option>
-<option value="Madhya Pradesh">Madhya Pradesh</option>
-<option value="West Bengal">West Bengal</option>
-<option value="Tamil Nadu">Tamil Nadu</option>
-<option value="Karnataka">Karnataka</option>
-<option value="Telangana">Telangana</option>
-<option value="Andhra Pradesh">Andhra Pradesh</option>
-<option value="Kerala">Kerala</option>
-<option value="Odisha">Odisha</option>
-<option value="Chhattisgarh">Chhattisgarh</option>
-<option value="Jharkhand">Jharkhand</option>
-<option value="Assam">Assam</option>
 </select>
 </div>
 
@@ -130,6 +123,7 @@ Date: <input type="date" id="today">
 <div id="dMobile"></div>
 </div>
 
+<!-- ✅ CORRECT TABLE -->
 <table>
 <thead>
 <tr>
@@ -171,7 +165,7 @@ Date: <input type="date" id="today">
 4. Price validity 15 days unless specified. 
 5. Stock details subject to change. 
 6. Goods once sold will not be taken back.
-7. The mentioned item/items in the quotation are for R&D purpose only. Not for other uses.
+7. The mentioned item/items in the quotation are for R&D purpose only.
 </div>
 
 <br>
@@ -192,26 +186,25 @@ Authorised Signatory
 </div>
 
 <button onclick="preparePDF()">Download PDF</button>
-<button onclick="saveToERP()">Save to ERP</button>
 
 <script>
 
 // TITLE SWITCH
 function updateTitle(){
-document.getElementById("docTitle").innerText =
-document.getElementById("docType").value;
+docTitle.innerText = docType.value;
 }
 
 // AUTO DATE
-document.getElementById("today").valueAsDate = new Date();
+today.valueAsDate = new Date();
 
 // AUTO NUMBER
 let qCount = localStorage.getItem("qCount") || 1;
-document.getElementById("qno").value = "SVT-" + String(qCount).padStart(4,'0');
+qno.value = "SVT-" + String(qCount).padStart(4,'0');
 
-// ADD ROW
+// ADD ROW (✅ FIXED ORDER)
 function addRow(){
 let tr=document.createElement("tr");
+
 tr.innerHTML=`
 <td><input></td>
 <td><input></td>
@@ -227,4 +220,87 @@ tr.innerHTML=`
 </select>
 </td>
 <td><input type="number" oninput="calc()"></td>
-<td><input value="18"
+<td><input value="18" oninput="calc()"></td>
+<td class="total">0</td>
+`;
+
+tbody.appendChild(tr);
+}
+
+// CALCULATION (✅ FIXED INDEXES)
+function calc(){
+
+let sub=0,cgst=0,sgst=0,igst=0;
+
+let isUP = clientState.value === "UP";
+
+document.querySelectorAll("#tbody tr").forEach(r=>{
+
+let qty = Number(r.cells[3].children[0].value)||0;
+let rate = Number(r.cells[5].children[0].value)||0;
+let gst = Number(r.cells[6].children[0].value)||0;
+
+let amt = qty * rate;
+let gstVal = amt * gst / 100;
+
+r.cells[7].innerText = (amt + gstVal).toFixed(2);
+
+sub += amt;
+
+if(isUP){
+cgst += gstVal/2;
+sgst += gstVal/2;
+}else{
+igst += gstVal;
+}
+
+});
+
+let total = sub + cgst + sgst + igst;
+
+let rounded = Math.round(total);
+let roundOff = rounded - total;
+
+cgstRow.style.display = isUP ? "block":"none";
+sgstRow.style.display = isUP ? "block":"none";
+igstRow.style.display = isUP ? "none":"block";
+
+sub.innerText=sub.toFixed(2);
+cgst.innerText=cgst.toFixed(2);
+sgst.innerText=sgst.toFixed(2);
+igst.innerText=igst.toFixed(2);
+round.innerText=roundOff.toFixed(2);
+grand.innerText=rounded.toFixed(2);
+
+words.innerText=numberToWords(rounded);
+}
+
+// WORDS
+function numberToWords(num){
+const a=["","One","Two","Three","Four","Five","Six","Seven","Eight","Nine","Ten",
+"Eleven","Twelve","Thirteen","Fourteen","Fifteen","Sixteen","Seventeen","Eighteen","Nineteen"];
+const b=["","","Twenty","Thirty","Forty","Fifty","Sixty","Seventy","Eighty","Ninety"];
+
+function convert(n){
+if(n<20)return a[n];
+if(n<100)return b[Math.floor(n/10)]+" "+a[n%10];
+if(n<1000)return a[Math.floor(n/100)]+" Hundred "+convert(n%100);
+if(n<1000000)return convert(Math.floor(n/1000))+" Thousand "+convert(n%1000);
+return "";
+}
+
+return convert(num)+" Rupees Only";
+}
+
+// PDF
+function preparePDF(){
+html2pdf().from(document.getElementById("quote")).save();
+}
+
+// INIT
+addRow();
+
+</script>
+
+</body>
+</html>
