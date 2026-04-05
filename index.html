@@ -28,7 +28,10 @@ input, textarea, select {
     box-sizing: border-box;
 }
 
-textarea { white-space: pre-wrap; }
+textarea { 
+    white-space: pre-wrap; 
+    word-wrap: break-word;
+}
 
 /* TABLE */
 table {
@@ -105,7 +108,10 @@ Date: <input type="date" id="today">
 <div class="section">
 <b>Client Details</b><br>
 <input id="clientName" placeholder="Client Name">
-<textarea id="clientAddress" placeholder="Address"></textarea>
+
+<!-- ✅ ADDRESS WRAP FIX -->
+<textarea id="clientAddress" placeholder="Address" rows="3"></textarea>
+
 <input id="clientMobile" placeholder="Mobile">
 
 <select id="clientState" onchange="calc()">
@@ -210,33 +216,24 @@ Authorised Signatory
 
 <script>
 
-// TITLE + LABEL SWITCH
 function updateTitle(){
 let type = docType.value;
 docTitle.innerText = type;
-
-if(type === "QUOTATION"){
-docNoLabel.innerText = "Quotation No:";
-}else{
-docNoLabel.innerText = "Proforma Invoice No:";
-}
+docNoLabel.innerText = type === "QUOTATION" ? "Quotation No:" : "Proforma Invoice No:";
 }
 
-// AUTO DATE
 today.valueAsDate = new Date();
 
-// AUTO NUMBER
 let qCount = localStorage.getItem("qCount") || 1;
 qno.value = "SVT-" + String(qCount).padStart(4,'0');
 
-// ADD ROW
 function addRow(){
 let tr=document.createElement("tr");
 
 tr.innerHTML=`
-<td><input placeholder="Item"></td>
-<td><input placeholder="CAS"></td>
-<td><input placeholder="Pack"></td>
+<td><input></td>
+<td><input></td>
+<td><input placeholder="500gm"></td>
 <td><input type="number" oninput="calc()"></td>
 <td>
 <select>
@@ -252,16 +249,13 @@ tr.innerHTML=`
 <td class="total">0</td>
 `;
 
-document.getElementById("tbody").appendChild(tr);
+tbody.appendChild(tr);
 }
 
-// CALCULATION
 function calc(){
 
 let sub=0,cgst=0,sgst=0,igst=0;
-
-let state = clientState.value;
-let isUP = (state === "Uttar Pradesh");
+let isUP = clientState.value === "Uttar Pradesh";
 
 document.querySelectorAll("#tbody tr").forEach(r=>{
 
@@ -286,7 +280,6 @@ igst += gstVal;
 });
 
 let total = sub + cgst + sgst + igst;
-
 let rounded = Math.round(total);
 let roundOff = rounded - total;
 
@@ -304,7 +297,6 @@ grand.innerText=rounded.toFixed(2);
 words.innerText=numberToWords(rounded);
 }
 
-// WORDS
 function numberToWords(num){
 const a=["","One","Two","Three","Four","Five","Six","Seven","Eight","Nine","Ten",
 "Eleven","Twelve","Thirteen","Fourteen","Fifteen","Sixteen","Seventeen","Eighteen","Nineteen"];
@@ -321,12 +313,10 @@ return "";
 return convert(num)+" Rupees Only";
 }
 
-// PDF
 function preparePDF(){
 html2pdf().from(document.getElementById("quote")).save();
 }
 
-// INIT
 addRow();
 
 </script>
