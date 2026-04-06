@@ -20,9 +20,8 @@ body { font-family: Arial; background:#f5f5f5; }
 
 input, textarea, select {
     width: 100%;
-    border: 1px solid #ccc;
+    border: none;
     font-size: 12px;
-    padding: 4px;
 }
 
 textarea {
@@ -43,11 +42,8 @@ th, td {
     font-size: 12px;
 }
 
-td input, td select {
-    border: 1px solid #ccc;
-}
+.section { margin-top: 12px; }
 
-/* SUMMARY */
 .summary {
     text-align: right;
     margin-top: 15px;
@@ -65,17 +61,32 @@ td input, td select {
 
 <div class="header">
 <h2>SIDDHI VINAYAK TRADERS</h2>
-<h3>QUOTATION</h3>
+<p>12/306, Arya Nagar, Firozabad, UP - 283203</p>
+<p>GSTIN: 09BFZPK4340C2Z7 | +91 9286107722 | svtjp11@gmail.com</p>
+
+<select id="docType" onchange="updateTitle()">
+<option value="QUOTATION">Quotation</option>
+<option value="PROFORMA INVOICE">Proforma Invoice</option>
+</select>
+
+<h3 id="docTitle">QUOTATION</h3>
 </div>
 
-<div>
-Quotation No: <input id="qno"><br>
-Date: <input type="date" id="today">
+<div class="section">
+<b>Quotation No:</b>
+<input id="qno" value="SVT-0001"><br>
+
+<b>Date:</b>
+<input type="date" id="today">
 </div>
 
-<div>
+<div class="section">
+<b>Client Details</b><br>
+
 <input id="clientName" placeholder="Client Name">
+
 <textarea id="clientAddress" placeholder="Address"></textarea>
+
 <input id="clientMobile" placeholder="Mobile">
 
 <select id="clientState" onchange="calc()">
@@ -134,6 +145,29 @@ Date: <input type="date" id="today">
 <p><b>Amount in Words:</b> <span id="words"></span></p>
 </div>
 
+<div class="section">
+<b>Terms & Conditions:</b>
+<p style="font-size:10px;">
+1. KINDLY CHECK COMPLETE SPECIFICATIONS BEFORE PLACING YOUR CONFIRMED PURCHASE ORDER.
+2. GST % & HSN Code may be changed as per Government act.
+3. Payment 100% Advance by Cheque/RTGS/NEFT.
+4. Price validity 15 days unless specified.
+5. Stock details subject to change.
+6. Goods once sold will not be taken back.
+</p>
+
+<b>Bank Details:</b>
+<p style="font-size:10px;">
+Bank: UNION BANK OF INDIA<br>
+A/C No.: 424301010040874<br>
+IFSC Code: UBIN0542431
+</p>
+
+<br>
+For Siddhi Vinayak Traders<br><br>
+Authorised Signatory
+</div>
+
 </div>
 
 <button onclick="preparePDF()">Download PDF</button>
@@ -142,6 +176,11 @@ Date: <input type="date" id="today">
 
 // AUTO DATE
 document.getElementById("today").valueAsDate = new Date();
+
+// TITLE SWITCH
+function updateTitle(){
+document.getElementById("docTitle").innerText = docType.value;
+}
 
 // ADD ROW
 function addRow(){
@@ -169,29 +208,25 @@ tr.innerHTML=`
 document.getElementById("tbody").appendChild(tr);
 }
 
-// 🔥 FIXED CALCULATION
+// 🔥 FIXED GST CALCULATION
 function calc(){
 
-let rows = document.querySelectorAll("#tbody tr");
+let sub=0,cgst=0,sgst=0,igst=0;
 
-let sub = 0, cgst = 0, sgst = 0, igst = 0;
-
-// FIXED STATE CHECK
+// IMPORTANT FIX
 let state = document.getElementById("clientState").value.trim().toLowerCase();
 let isUP = (state === "uttar pradesh");
 
-rows.forEach(r => {
+document.querySelectorAll("#tbody tr").forEach(r=>{
 
-let qty = Number(r.cells[3].children[0].value) || 0;
-let rate = Number(r.cells[5].children[0].value) || 0;
-let gst = Number(r.cells[6].children[0].value) || 0;
+let qty = Number(r.cells[3].children[0].value)||0;
+let rate = Number(r.cells[5].children[0].value)||0;
+let gst = Number(r.cells[6].children[0].value)||0;
 
 let amount = qty * rate;
 let gstVal = amount * gst / 100;
 
-let total = amount + gstVal;
-
-r.cells[7].innerText = total.toFixed(2);
+r.cells[7].innerText = (amount + gstVal).toFixed(2);
 
 sub += amount;
 
@@ -204,7 +239,7 @@ igst += gstVal;
 
 });
 
-// FINAL TOTAL
+// TOTAL
 let total = sub + cgst + sgst + igst;
 
 let rounded = Math.round(total);
@@ -218,9 +253,9 @@ document.getElementById("igst").innerText = igst.toFixed(2);
 document.getElementById("round").innerText = roundOff.toFixed(2);
 document.getElementById("grand").innerText = rounded.toFixed(2);
 
-document.getElementById("cgstRow").style.display = isUP ? "block" : "none";
-document.getElementById("sgstRow").style.display = isUP ? "block" : "none";
-document.getElementById("igstRow").style.display = isUP ? "none" : "block";
+document.getElementById("cgstRow").style.display = isUP ? "block":"none";
+document.getElementById("sgstRow").style.display = isUP ? "block":"none";
+document.getElementById("igstRow").style.display = isUP ? "none":"block";
 
 document.getElementById("words").innerText = numberToWords(rounded);
 
