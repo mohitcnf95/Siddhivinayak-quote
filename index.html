@@ -24,20 +24,17 @@ input, textarea, select {
     font-size: 12px;
 }
 
-/* ✅ ADDRESS WRAP FIX */
 textarea {
     white-space: pre-wrap;
     word-break: break-word;
 }
 
-/* TABLE */
 table {
     width: 100%;
     border-collapse: collapse;
     margin-top: 12px;
 }
 
-/* ✅ TABLE WRAP FIX */
 th, td {
     border: 1px solid #444;
     padding: 6px;
@@ -179,10 +176,8 @@ Authorised Signatory
 
 <script>
 
-// AUTO DATE
 document.getElementById("today").valueAsDate = new Date();
 
-// ✅ ONLY LABEL FIX (NO OTHER CHANGE)
 function updateTitle(){
 let type = document.getElementById("docType").value;
 document.getElementById("docTitle").innerText = type;
@@ -194,7 +189,6 @@ document.getElementById("docLabel").innerText = "Quotation No:";
 }
 }
 
-// ADD ROW
 function addRow(){
 let tr=document.createElement("tr");
 
@@ -220,7 +214,6 @@ tr.innerHTML=`
 document.getElementById("tbody").appendChild(tr);
 }
 
-// ORIGINAL CALC (UNCHANGED)
 function calc(){
 
 let sub=0,cgst=0,sgst=0,igst=0;
@@ -266,33 +259,51 @@ document.getElementById("cgstRow").style.display = isUP ? "block":"none";
 document.getElementById("sgstRow").style.display = isUP ? "block":"none";
 document.getElementById("igstRow").style.display = isUP ? "none":"block";
 
-document.getElementById("words").innerText = numberToWords(rounded);
+document.getElementById("words").innerText = numberToWordsIndian(rounded);
 
 }
 
-// WORDS
-function numberToWords(num){
-const a=["","One","Two","Three","Four","Five","Six","Seven","Eight","Nine","Ten",
+// ✅ INDIAN NUMBER SYSTEM FIX
+function numberToWordsIndian(num){
+
+const a = ["","One","Two","Three","Four","Five","Six","Seven","Eight","Nine","Ten",
 "Eleven","Twelve","Thirteen","Fourteen","Fifteen","Sixteen","Seventeen","Eighteen","Nineteen"];
-const b=["","","Twenty","Thirty","Forty","Fifty","Sixty","Seventy","Eighty","Ninety"];
 
-function convert(n){
-if(n<20)return a[n];
-if(n<100)return b[Math.floor(n/10)]+" "+a[n%10];
-if(n<1000)return a[Math.floor(n/100)]+" Hundred "+convert(n%100);
-if(n<1000000)return convert(Math.floor(n/1000))+" Thousand "+convert(n%1000);
-return "";
+const b = ["","","Twenty","Thirty","Forty","Fifty","Sixty","Seventy","Eighty","Ninety"];
+
+function twoDigits(n){
+if(n<20) return a[n];
+return b[Math.floor(n/10)] + " " + a[n%10];
 }
 
-return convert(num)+" Rupees Only";
+let str = "";
+
+if(num >= 100000){
+str += twoDigits(Math.floor(num/100000)) + " Lakh ";
+num %= 100000;
 }
 
-// PDF
+if(num >= 1000){
+str += twoDigits(Math.floor(num/1000)) + " Thousand ";
+num %= 1000;
+}
+
+if(num >= 100){
+str += a[Math.floor(num/100)] + " Hundred ";
+num %= 100;
+}
+
+if(num > 0){
+str += twoDigits(num);
+}
+
+return str.trim() + " Rupees Only";
+}
+
 function preparePDF(){
 html2pdf().from(document.getElementById("quote")).save();
 }
 
-// INIT
 addRow();
 
 </script>
