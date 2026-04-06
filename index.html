@@ -18,12 +18,14 @@ body { font-family: Arial; background:#f5f5f5; }
 
 .header { text-align: center; }
 
+/* INPUT */
 input, textarea, select {
     width: 100%;
     border: none;
     font-size: 12px;
 }
 
+/* ✅ ADDRESS WRAP */
 textarea {
     white-space: pre-wrap;
     word-break: break-word;
@@ -34,12 +36,23 @@ table {
     width: 100%;
     border-collapse: collapse;
     margin-top: 12px;
+    table-layout: fixed;
 }
 
 th, td {
     border: 1px solid #444;
     padding: 6px;
     font-size: 12px;
+
+    /* ✅ TEXT WRAP FIX */
+    word-break: break-word;
+    white-space: normal;
+}
+
+/* ✅ ITEM COLUMN STRONG WRAP */
+td:first-child {
+    white-space: normal;
+    word-break: break-word;
 }
 
 .section { margin-top: 12px; }
@@ -73,7 +86,7 @@ th, td {
 </div>
 
 <div class="section">
-<b>Quotation No:</b>
+<b id="docLabel">Quotation No:</b>
 <input id="qno" value="SVT-0001"><br>
 
 <b>Date:</b>
@@ -178,9 +191,17 @@ Authorised Signatory
 // AUTO DATE
 document.getElementById("today").valueAsDate = new Date();
 
-// TITLE SWITCH
+// ✅ FIX TITLE + LABEL
 function updateTitle(){
-document.getElementById("docTitle").innerText = docType.value;
+let type = document.getElementById("docType").value;
+
+document.getElementById("docTitle").innerText = type;
+
+if(type === "PROFORMA INVOICE"){
+document.getElementById("docLabel").innerText = "PI No:";
+}else{
+document.getElementById("docLabel").innerText = "Quotation No:";
+}
 }
 
 // ADD ROW
@@ -209,12 +230,11 @@ tr.innerHTML=`
 document.getElementById("tbody").appendChild(tr);
 }
 
-// 🔥 FIXED GST CALCULATION
+// CALCULATION (UNCHANGED)
 function calc(){
 
 let sub=0,cgst=0,sgst=0,igst=0;
 
-// IMPORTANT FIX
 let state = document.getElementById("clientState").value.trim().toLowerCase();
 let isUP = (state === "uttar pradesh");
 
@@ -240,13 +260,11 @@ igst += gstVal;
 
 });
 
-// TOTAL
 let total = sub + cgst + sgst + igst;
 
 let rounded = Math.round(total);
 let roundOff = rounded - total;
 
-// DISPLAY
 document.getElementById("sub").innerText = sub.toFixed(2);
 document.getElementById("cgst").innerText = cgst.toFixed(2);
 document.getElementById("sgst").innerText = sgst.toFixed(2);
@@ -259,10 +277,9 @@ document.getElementById("sgstRow").style.display = isUP ? "block":"none";
 document.getElementById("igstRow").style.display = isUP ? "none":"block";
 
 document.getElementById("words").innerText = numberToWords(rounded);
-
 }
 
-// WORDS
+// WORDS (UNCHANGED)
 function numberToWords(num){
 const a=["","One","Two","Three","Four","Five","Six","Seven","Eight","Nine","Ten",
 "Eleven","Twelve","Thirteen","Fourteen","Fifteen","Sixteen","Seventeen","Eighteen","Nineteen"];
