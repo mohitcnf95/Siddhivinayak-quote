@@ -29,7 +29,6 @@ textarea {
     word-break: break-word;
 }
 
-/* TABLE */
 table {
     width: 100%;
     border-collapse: collapse;
@@ -61,54 +60,42 @@ th, td {
 
 <div class="header">
 <h2>SIDDHI VINAYAK TRADERS</h2>
-<p>12/306, Arya Nagar, Firozabad, UP - 283203</p>
-<p>GSTIN: 09BFZPK4340C2Z7 | +91 9286107722 | svtjp11@gmail.com</p>
-
-<select id="docType" onchange="updateTitle()">
-<option value="QUOTATION">Quotation</option>
-<option value="PROFORMA INVOICE">Proforma Invoice</option>
-</select>
-
-<h3 id="docTitle">QUOTATION</h3>
+<h3>QUOTATION</h3>
 </div>
 
 <div class="section">
-<b>Quotation No:</b>
-<input id="qno" value="SVT-0001"><br>
+Quotation No:
+<input id="qno"><br>
 
-<b>Date:</b>
+Date:
 <input type="date" id="today">
 </div>
 
 <div class="section">
-<b>Client Details</b><br>
-
 <input id="clientName" placeholder="Client Name">
-
 <textarea id="clientAddress" placeholder="Address"></textarea>
-
 <input id="clientMobile" placeholder="Mobile">
 
 <select id="clientState" onchange="calc()">
 <option value="">Select State</option>
-<option value="Uttar Pradesh">Uttar Pradesh</option>
-<option value="Delhi">Delhi</option>
-<option value="Haryana">Haryana</option>
-<option value="Maharashtra">Maharashtra</option>
-<option value="Gujarat">Gujarat</option>
-<option value="Rajasthan">Rajasthan</option>
-<option value="Punjab">Punjab</option>
-<option value="Bihar">Bihar</option>
-<option value="Karnataka">Karnataka</option>
-<option value="Tamil Nadu">Tamil Nadu</option>
-<option value="West Bengal">West Bengal</option>
-<option value="Madhya Pradesh">Madhya Pradesh</option>
-<option value="Telangana">Telangana</option>
-<option value="Kerala">Kerala</option>
-<option value="Odisha">Odisha</option>
-<option value="Jharkhand">Jharkhand</option>
-<option value="Chhattisgarh">Chhattisgarh</option>
-<option value="Assam">Assam</option>
+<option>Uttar Pradesh</option>
+<option>Delhi</option>
+<option>Haryana</option>
+<option>Maharashtra</option>
+<option>Gujarat</option>
+<option>Rajasthan</option>
+<option>Punjab</option>
+<option>Bihar</option>
+<option>Karnataka</option>
+<option>Tamil Nadu</option>
+<option>West Bengal</option>
+<option>Madhya Pradesh</option>
+<option>Telangana</option>
+<option>Kerala</option>
+<option>Odisha</option>
+<option>Jharkhand</option>
+<option>Chhattisgarh</option>
+<option>Assam</option>
 </select>
 </div>
 
@@ -145,29 +132,6 @@ th, td {
 <p><b>Amount in Words:</b> <span id="words"></span></p>
 </div>
 
-<div class="section">
-<b>Terms & Conditions:</b>
-<p style="font-size:10px;">
-1. KINDLY CHECK COMPLETE SPECIFICATIONS BEFORE PLACING YOUR CONFIRMED PURCHASE ORDER.
-2. GST % & HSN Code may be changed as per Government act.
-3. Payment 100% Advance by Cheque/RTGS/NEFT.
-4. Price validity 15 days unless specified.
-5. Stock details subject to change.
-6. Goods once sold will not be taken back.
-</p>
-
-<b>Bank Details:</b>
-<p style="font-size:10px;">
-Bank: UNION BANK OF INDIA<br>
-A/C No.: 424301010040874<br>
-IFSC Code: UBIN0542431
-</p>
-
-<br>
-For Siddhi Vinayak Traders<br><br>
-Authorised Signatory
-</div>
-
 </div>
 
 <button onclick="preparePDF()">Download PDF</button>
@@ -176,11 +140,6 @@ Authorised Signatory
 
 // AUTO DATE
 document.getElementById("today").valueAsDate = new Date();
-
-// TITLE SWITCH
-function updateTitle(){
-document.getElementById("docTitle").innerText = docType.value;
-}
 
 // ADD ROW
 function addRow(){
@@ -208,12 +167,11 @@ tr.innerHTML=`
 document.getElementById("tbody").appendChild(tr);
 }
 
-// 🔥 FIXED GST CALCULATION
+// ✅ FIXED CALCULATION
 function calc(){
 
-let sub=0,cgst=0,sgst=0,igst=0;
+let sub = 0, cgst = 0, sgst = 0, igst = 0;
 
-// IMPORTANT FIX
 let state = document.getElementById("clientState").value.trim().toLowerCase();
 let isUP = (state === "uttar pradesh");
 
@@ -239,13 +197,12 @@ igst += gstVal;
 
 });
 
-// TOTAL
 let total = sub + cgst + sgst + igst;
 
 let rounded = Math.round(total);
 let roundOff = rounded - total;
 
-// DISPLAY
+// ✅ FIXED DOM REFERENCES
 document.getElementById("sub").innerText = sub.toFixed(2);
 document.getElementById("cgst").innerText = cgst.toFixed(2);
 document.getElementById("sgst").innerText = sgst.toFixed(2);
@@ -258,7 +215,6 @@ document.getElementById("sgstRow").style.display = isUP ? "block":"none";
 document.getElementById("igstRow").style.display = isUP ? "none":"block";
 
 document.getElementById("words").innerText = numberToWords(rounded);
-
 }
 
 // WORDS
