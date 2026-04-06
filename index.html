@@ -17,14 +17,12 @@ body { font-family: Arial; background:#f5f5f5; }
 }
 
 .header { text-align: center; }
-.logo { width: 70px; }
 
 input, textarea, select {
     width: 100%;
     border: 1px solid #ccc;
     font-size: 12px;
     padding: 4px;
-    box-sizing: border-box;
 }
 
 textarea {
@@ -32,11 +30,11 @@ textarea {
     word-break: break-word;
 }
 
+/* TABLE */
 table {
     width: 100%;
     border-collapse: collapse;
     margin-top: 12px;
-    table-layout: fixed;
 }
 
 th, td {
@@ -45,8 +43,15 @@ th, td {
     font-size: 12px;
 }
 
-.section { margin-top: 12px; }
-.summary { text-align: right; margin-top: 15px; }
+td input, td select {
+    border: 1px solid #ccc;
+}
+
+/* SUMMARY */
+.summary {
+    text-align: right;
+    margin-top: 15px;
+}
 
 @media print {
     button { display: none; }
@@ -63,12 +68,12 @@ th, td {
 <h3>QUOTATION</h3>
 </div>
 
-<div class="section">
+<div>
 Quotation No: <input id="qno"><br>
 Date: <input type="date" id="today">
 </div>
 
-<div class="section">
+<div>
 <input id="clientName" placeholder="Client Name">
 <textarea id="clientAddress" placeholder="Address"></textarea>
 <input id="clientMobile" placeholder="Mobile">
@@ -78,7 +83,21 @@ Date: <input type="date" id="today">
 <option value="Uttar Pradesh">Uttar Pradesh</option>
 <option value="Delhi">Delhi</option>
 <option value="Haryana">Haryana</option>
+<option value="Maharashtra">Maharashtra</option>
+<option value="Gujarat">Gujarat</option>
+<option value="Rajasthan">Rajasthan</option>
+<option value="Punjab">Punjab</option>
 <option value="Bihar">Bihar</option>
+<option value="Karnataka">Karnataka</option>
+<option value="Tamil Nadu">Tamil Nadu</option>
+<option value="West Bengal">West Bengal</option>
+<option value="Madhya Pradesh">Madhya Pradesh</option>
+<option value="Telangana">Telangana</option>
+<option value="Kerala">Kerala</option>
+<option value="Odisha">Odisha</option>
+<option value="Jharkhand">Jharkhand</option>
+<option value="Chhattisgarh">Chhattisgarh</option>
+<option value="Assam">Assam</option>
 </select>
 </div>
 
@@ -87,7 +106,7 @@ Date: <input type="date" id="today">
 <tr>
 <th>Item</th>
 <th>CAS</th>
-<th>Pack</th>
+<th>Pack Size</th>
 <th>Qty</th>
 <th>Unit</th>
 <th>Rate</th>
@@ -95,6 +114,7 @@ Date: <input type="date" id="today">
 <th>Total</th>
 </tr>
 </thead>
+
 <tbody id="tbody"></tbody>
 </table>
 
@@ -102,30 +122,43 @@ Date: <input type="date" id="today">
 
 <div class="summary">
 <p>Subtotal: ₹ <span id="sub">0</span></p>
+
 <p id="cgstRow">CGST: ₹ <span id="cgst">0</span></p>
 <p id="sgstRow">SGST: ₹ <span id="sgst">0</span></p>
 <p id="igstRow" style="display:none;">IGST: ₹ <span id="igst">0</span></p>
+
+<p>Round Off: ₹ <span id="round">0</span></p>
+
 <h3>Total: ₹ <span id="grand">0</span></h3>
+
+<p><b>Amount in Words:</b> <span id="words"></span></p>
 </div>
 
 </div>
+
+<button onclick="preparePDF()">Download PDF</button>
 
 <script>
 
-today.valueAsDate = new Date();
+// AUTO DATE
+document.getElementById("today").valueAsDate = new Date();
 
+// ADD ROW
 function addRow(){
 let tr=document.createElement("tr");
 
 tr.innerHTML=`
 <td><input></td>
 <td><input></td>
-<td><input></td>
+<td><input placeholder="500gm"></td>
 <td><input type="number" oninput="calc()"></td>
 <td>
 <select onchange="calc()">
 <option>gm</option>
+<option>mg</option>
 <option>kg</option>
+<option>ml</option>
+<option>L</option>
 </select>
 </td>
 <td><input type="number" oninput="calc()"></td>
@@ -133,30 +166,34 @@ tr.innerHTML=`
 <td class="total">0</td>
 `;
 
-tbody.appendChild(tr);
-
-// ✅ IMPORTANT FIX
-calc();
+document.getElementById("tbody").appendChild(tr);
 }
 
+// 🔥 FIXED CALCULATION
 function calc(){
 
-let sub=0,cgst=0,sgst=0,igst=0;
+let rows = document.querySelectorAll("#tbody tr");
 
-let isUP = clientState.value === "Uttar Pradesh";
+let sub = 0, cgst = 0, sgst = 0, igst = 0;
 
-document.querySelectorAll("#tbody tr").forEach(r=>{
+// FIXED STATE CHECK
+let state = document.getElementById("clientState").value.trim().toLowerCase();
+let isUP = (state === "uttar pradesh");
 
-let qty = Number(r.cells[3].children[0].value)||0;
-let rate = Number(r.cells[5].children[0].value)||0;
-let gst = Number(r.cells[6].children[0].value)||0;
+rows.forEach(r => {
 
-let amt = qty * rate;
-let gstVal = amt * gst / 100;
+let qty = Number(r.cells[3].children[0].value) || 0;
+let rate = Number(r.cells[5].children[0].value) || 0;
+let gst = Number(r.cells[6].children[0].value) || 0;
 
-r.cells[7].innerText = (amt + gstVal).toFixed(2);
+let amount = qty * rate;
+let gstVal = amount * gst / 100;
 
-sub += amt;
+let total = amount + gstVal;
+
+r.cells[7].innerText = total.toFixed(2);
+
+sub += amount;
 
 if(isUP){
 cgst += gstVal/2;
@@ -167,19 +204,51 @@ igst += gstVal;
 
 });
 
+// FINAL TOTAL
 let total = sub + cgst + sgst + igst;
 
-document.getElementById("sub").innerText=sub.toFixed(2);
-document.getElementById("cgst").innerText=cgst.toFixed(2);
-document.getElementById("sgst").innerText=sgst.toFixed(2);
-document.getElementById("igst").innerText=igst.toFixed(2);
-document.getElementById("grand").innerText=total.toFixed(2);
+let rounded = Math.round(total);
+let roundOff = rounded - total;
 
-cgstRow.style.display = isUP ? "block":"none";
-sgstRow.style.display = isUP ? "block":"none";
-igstRow.style.display = isUP ? "none":"block";
+// DISPLAY
+document.getElementById("sub").innerText = sub.toFixed(2);
+document.getElementById("cgst").innerText = cgst.toFixed(2);
+document.getElementById("sgst").innerText = sgst.toFixed(2);
+document.getElementById("igst").innerText = igst.toFixed(2);
+document.getElementById("round").innerText = roundOff.toFixed(2);
+document.getElementById("grand").innerText = rounded.toFixed(2);
+
+document.getElementById("cgstRow").style.display = isUP ? "block" : "none";
+document.getElementById("sgstRow").style.display = isUP ? "block" : "none";
+document.getElementById("igstRow").style.display = isUP ? "none" : "block";
+
+document.getElementById("words").innerText = numberToWords(rounded);
+
 }
 
+// WORDS
+function numberToWords(num){
+const a=["","One","Two","Three","Four","Five","Six","Seven","Eight","Nine","Ten",
+"Eleven","Twelve","Thirteen","Fourteen","Fifteen","Sixteen","Seventeen","Eighteen","Nineteen"];
+const b=["","","Twenty","Thirty","Forty","Fifty","Sixty","Seventy","Eighty","Ninety"];
+
+function convert(n){
+if(n<20)return a[n];
+if(n<100)return b[Math.floor(n/10)]+" "+a[n%10];
+if(n<1000)return a[Math.floor(n/100)]+" Hundred "+convert(n%100);
+if(n<1000000)return convert(Math.floor(n/1000))+" Thousand "+convert(n%1000);
+return "";
+}
+
+return convert(num)+" Rupees Only";
+}
+
+// PDF
+function preparePDF(){
+html2pdf().from(document.getElementById("quote")).save();
+}
+
+// INIT
 addRow();
 
 </script>
