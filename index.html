@@ -1,328 +1,270 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>SVT Document</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SVT Quotation System</title>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
-<style>
-body { font-family: Arial; background:#f5f5f5; }
+    <style>
+        body { font-family: 'Segoe UI', Arial, sans-serif; background:#f0f2f5; margin: 0; padding: 20px; }
 
-.container {
-    width: 190mm;
-    margin: auto;
-    background: white;
-    padding: 25px;
-}
+        /* Document Container */
+        .container {
+            width: 210mm; /* A4 Width */
+            min-height: 297mm;
+            margin: auto;
+            background: white;
+            padding: 15mm;
+            box-sizing: border-box;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
 
-.header { text-align: center; }
+        .header { text-align: center; border-bottom: 2px solid #333; padding-bottom: 10px; margin-bottom: 20px; }
+        .header h2 { margin: 0; color: #1a1a1a; text-transform: uppercase; }
+        .header p { margin: 2px 0; font-size: 13px; color: #555; }
 
-input, textarea, select {
-    width: 100%;
-    border: none;
-    font-size: 12px;
-}
+        .doc-title-area { margin: 15px 0; text-align: center; }
+        #docTitle { text-decoration: underline; font-size: 20px; margin: 0; }
 
-textarea {
-    white-space: pre-wrap;
-    word-break: break-word;
-}
+        input, textarea, select {
+            width: 100%;
+            border: 1px solid #eee;
+            font-size: 13px;
+            padding: 4px;
+            background: transparent;
+        }
+        input:focus, textarea:focus { background: #fffdf0; border: 1px solid #ccc; }
 
-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 12px;
-}
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; table-layout: fixed; }
+        th, td { border: 1px solid #000; padding: 8px; font-size: 11px; text-align: center; word-wrap: break-word; }
+        th { background: #f2f2f2; }
 
-th, td {
-    border: 1px solid #444;
-    padding: 6px;
-    font-size: 12px;
-    word-break: break-word;
-    white-space: normal;
-}
+        .section { margin-top: 20px; display: flex; justify-content: space-between; }
+        .client-info { width: 60%; }
+        .doc-info { width: 35%; text-align: right; }
 
-.section { margin-top: 12px; }
+        .summary { text-align: right; margin-top: 20px; border-top: 1px solid #000; padding-top: 10px; }
+        .summary p { margin: 5px 0; font-size: 13px; }
+        .grand-total { font-size: 18px; font-weight: bold; border-top: 1px solid #000; display: inline-block; padding-top: 5px; }
 
-.summary {
-    text-align: right;
-    margin-top: 15px;
-}
-
-@media print {
-    button { display: none; }
-}
-</style>
+        .footer-area { margin-top: 40px; font-size: 11px; border-top: 1px solid #eee; padding-top: 10px; }
+        
+        /* Hiding elements for PDF */
+        .no-print { 
+            display: flex; 
+            gap: 10px; 
+            justify-content: center; 
+            margin-bottom: 20px; 
+            position: sticky; 
+            top: 0; 
+            background: #f0f2f5; 
+            padding: 10px; 
+            z-index: 100;
+        }
+        .btn { padding: 10px 20px; cursor: pointer; border-radius: 5px; border: none; font-weight: bold; }
+        .btn-add { background: #28a745; color: white; }
+        .btn-dl { background: #007bff; color: white; }
+    </style>
 </head>
 
 <body>
 
+<div class="no-print">
+    <select id="docType" onchange="updateTitle()" style="width: 200px; background: white;">
+        <option value="QUOTATION">Quotation</option>
+        <option value="PROFORMA INVOICE">Proforma Invoice</option>
+    </select>
+    <button class="btn btn-add" onclick="addRow()">+ Add Item</button>
+    <button class="btn btn-dl" onclick="preparePDF()">Download PDF</button>
+</div>
+
 <div id="quote" class="container">
+    <div class="header">
+        <h2>SIDDHI VINAYAK TRADERS</h2>
+        <p>12/306, Arya Nagar, Firozabad, UP - 283203</p>
+        <p>GSTIN: 09BFZPK4340C2Z7 | +91 9286107722 | svtjp11@gmail.com</p>
+    </div>
 
-<div class="header">
-<h2>SIDDHI VINAYAK TRADERS</h2>
-<p>12/306, Arya Nagar, Firozabad, UP - 283203</p>
-<p>GSTIN: 09BFZPK4340C2Z7 | +91 9286107722 | svtjp11@gmail.com</p>
+    <div class="doc-title-area">
+        <h3 id="docTitle">QUOTATION</h3>
+    </div>
 
-<select id="docType" onchange="updateTitle()">
-<option value="QUOTATION">Quotation</option>
-<option value="PROFORMA INVOICE">Proforma Invoice</option>
-</select>
+    <div class="section">
+        <div class="client-info">
+            <b>Client Details:</b><br>
+            <input id="clientName" placeholder="Client Name" style="font-weight: bold; font-size: 14px;"><br>
+            <textarea id="clientAddress" placeholder="Address" rows="3"></textarea><br>
+            <input id="clientMobile" placeholder="Mobile / GSTIN">
+        </div>
+        <div class="doc-info">
+            <b id="docLabel">Quotation No:</b> <input id="qno" value="SVT-0001" style="width: 80px;"><br>
+            <b>Date:</b> <input type="date" id="today" style="width: 120px;"><br>
+            <b>State:</b> 
+            <select id="clientState" onchange="calc()" style="width: 120px;">
+                <option value="Uttar Pradesh">Uttar Pradesh</option>
+                <option value="Delhi">Delhi</option>
+                <option value="Haryana">Haryana</option>
+                <option value="Outside">Other State</option>
+            </select>
+        </div>
+    </div>
 
-<h3 id="docTitle">QUOTATION</h3>
+    <table>
+        <thead>
+            <tr>
+                <th style="width: 30%;">Item Description</th>
+                <th>CAS No</th>
+                <th>Pack</th>
+                <th>Qty</th>
+                <th>Unit</th>
+                <th>Rate</th>
+                <th>GST%</th>
+                <th>Total</th>
+            </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+    </table>
+
+    <div class="summary">
+        <p>Subtotal: ₹ <span id="sub">0.00</span></p>
+        <p id="cgstRow">CGST: ₹ <span id="cgst">0.00</span></p>
+        <p id="sgstRow">SGST: ₹ <span id="sgst">0.00</span></p>
+        <p id="igstRow" style="display:none;">IGST: ₹ <span id="igst">0.00</span></p>
+        <p>Round Off: ₹ <span id="round">0.00</span></p>
+        <div class="grand-total">Total: ₹ <span id="grand">0.00</span></div>
+        <p><b>Amount in Words:</b> <span id="words">Zero Rupees Only</span></p>
+    </div>
+
+    <div class="footer-area">
+        <div style="display: flex; gap: 30px;">
+            <div style="flex: 1;">
+                <b>Bank Details:</b><br>
+                Bank: UNION BANK OF INDIA<br>
+                A/C No.: 424301010040874<br>
+                IFSC Code: UBIN0542431
+            </div>
+            <div style="flex: 1;">
+                <b>Terms & Conditions:</b><br>
+                1. CHECK SPECIFICATIONS BEFORE CONFIRMING ORDER.<br>
+                2. GST % & HSN Code subject to Govt changes.<br>
+                3. Payment 100% Advance via RTGS/NEFT.<br>
+                4. Validity: 15 days. | Goods once sold not returnable.<br>
+                5. Items for R&D purpose only.
+            </div>
+        </div>
+        <br><br>
+        <div style="text-align: right; margin-top: 20px;">
+            For <b>Siddhi Vinayak Traders</b><br><br><br>
+            Authorised Signatory
+        </div>
+    </div>
 </div>
-
-<div class="section">
-<b id="docLabel">Quotation No:</b>
-<input id="qno" value="SVT-0001"><br>
-
-<b>Date:</b>
-<input type="date" id="today">
-</div>
-
-<div class="section">
-<b>Client Details</b><br>
-
-<input id="clientName" placeholder="Client Name">
-
-<textarea id="clientAddress" placeholder="Address"></textarea>
-
-<input id="clientMobile" placeholder="Mobile">
-
-<select id="clientState" onchange="calc()">
-<option value="">Select State</option>
-<option value="Uttar Pradesh">Uttar Pradesh</option>
-<option value="Delhi">Delhi</option>
-<option value="Haryana">Haryana</option>
-<option value="Maharashtra">Maharashtra</option>
-<option value="Gujarat">Gujarat</option>
-<option value="Rajasthan">Rajasthan</option>
-<option value="Punjab">Punjab</option>
-<option value="Bihar">Bihar</option>
-<option value="Karnataka">Karnataka</option>
-<option value="Tamil Nadu">Tamil Nadu</option>
-<option value="West Bengal">West Bengal</option>
-<option value="Madhya Pradesh">Madhya Pradesh</option>
-<option value="Telangana">Telangana</option>
-<option value="Kerala">Kerala</option>
-<option value="Odisha">Odisha</option>
-<option value="Jharkhand">Jharkhand</option>
-<option value="Chhattisgarh">Chhattisgarh</option>
-<option value="Assam">Assam</option>
-</select>
-</div>
-
-<table>
-<thead>
-<tr>
-<th>Item</th>
-<th>CAS</th>
-<th>Pack Size</th>
-<th>Qty</th>
-<th>Unit</th>
-<th>Rate</th>
-<th>GST%</th>
-<th>Total</th>
-</tr>
-</thead>
-
-<tbody id="tbody"></tbody>
-</table>
-
-<button onclick="addRow()">+ Add Item</button>
-
-<div class="summary">
-<p>Subtotal: ₹ <span id="sub">0</span></p>
-
-<p id="cgstRow">CGST: ₹ <span id="cgst">0</span></p>
-<p id="sgstRow">SGST: ₹ <span id="sgst">0</span></p>
-<p id="igstRow" style="display:none;">IGST: ₹ <span id="igst">0</span></p>
-
-<p>Round Off: ₹ <span id="round">0</span></p>
-
-<h3>Total: ₹ <span id="grand">0</span></h3>
-
-<p><b>Amount in Words:</b> <span id="words"></span></p>
-</div>
-
-<div class="section">
-<b>Terms & Conditions:</b>
-<p style="font-size:10px;">
-1. KINDLY CHECK COMPLETE SPECIFICATIONS BEFORE PLACING YOUR CONFIRMED PURCHASE ORDER.
-2. GST % & HSN Code may be changed as per Government act.
-3. Payment 100% Advance by Cheque/RTGS/NEFT.
-4. Price validity 15 days unless specified.
-5. Stock details subject to change.
-6. Goods once sold will not be taken back.
-7. The mentioned item/items in the quotation are for R&D purpose only.
-</p>
-
-<b>Bank Details:</b>
-<p style="font-size:10px;">
-Bank: UNION BANK OF INDIA<br>
-A/C No.: 424301010040874<br>
-IFSC Code: UBIN0542431
-</p>
-
-<br>
-For Siddhi Vinayak Traders<br><br>
-Authorised Signatory
-</div>
-
-</div>
-
-<button onclick="preparePDF()">Download PDF</button>
 
 <script>
+    document.getElementById("today").valueAsDate = new Date();
 
-document.getElementById("today").valueAsDate = new Date();
+    function updateTitle(){
+        let type = document.getElementById("docType").value;
+        document.getElementById("docTitle").innerText = type;
+        document.getElementById("docLabel").innerText = (type === "PROFORMA INVOICE") ? "PI No:" : "Quotation No:";
+    }
 
-function updateTitle(){
-let type = document.getElementById("docType").value;
-document.getElementById("docTitle").innerText = type;
+    function addRow(){
+        let tr = document.createElement("tr");
+        tr.innerHTML = `
+            <td><input placeholder="Product Name"></td>
+            <td><input placeholder="CAS"></td>
+            <td><input placeholder="Size"></td>
+            <td><input type="number" oninput="calc()" value="0"></td>
+            <td><input value="Nos" list="units"></td>
+            <td><input type="number" oninput="calc()" value="0"></td>
+            <td><input type="number" value="18" oninput="calc()"></td>
+            <td class="line-total">0.00</td>
+        `;
+        document.getElementById("tbody").appendChild(tr);
+        calc();
+    }
 
-if(type === "PROFORMA INVOICE"){
-document.getElementById("docLabel").innerText = "PI No:";
-}else{
-document.getElementById("docLabel").innerText = "Quotation No:";
-}
-}
+    function calc(){
+        let sub=0, totalTax=0;
+        let state = document.getElementById("clientState").value;
+        let isUP = (state === "Uttar Pradesh");
 
-function addRow(){
-let tr=document.createElement("tr");
+        document.querySelectorAll("#tbody tr").forEach(r=>{
+            let qty = parseFloat(r.cells[3].children[0].value) || 0;
+            let rate = parseFloat(r.cells[5].children[0].value) || 0;
+            let gst = parseFloat(r.cells[6].children[0].value) || 0;
 
-tr.innerHTML=`
-<td><input></td>
-<td><input></td>
-<td><input placeholder="500gm"></td>
-<td><input type="number" oninput="calc()"></td>
-<td>
-<select onchange="calc()">
-<option>gm</option>
-<option>mg</option>
-<option>kg</option>
-<option>ml</option>
-<option>L</option>
-</select>
-</td>
-<td><input type="number" oninput="calc()"></td>
-<td><input value="18" oninput="calc()"></td>
-<td class="total">0</td>
-`;
+            let amount = qty * rate;
+            let lineGst = amount * (gst / 100);
+            
+            r.cells[7].innerText = (amount + lineGst).toFixed(2);
+            sub += amount;
+            totalTax += lineGst;
+        });
 
-document.getElementById("tbody").appendChild(tr);
-}
+        let grand = sub + totalTax;
+        let rounded = Math.round(grand);
+        let roundOff = rounded - grand;
 
-function calc(){
+        document.getElementById("sub").innerText = sub.toFixed(2);
+        
+        if(isUP){
+            document.getElementById("cgst").innerText = (totalTax/2).toFixed(2);
+            document.getElementById("sgst").innerText = (totalTax/2).toFixed(2);
+            document.getElementById("igst").innerText = "0.00";
+            document.getElementById("cgstRow").style.display = "block";
+            document.getElementById("sgstRow").style.display = "block";
+            document.getElementById("igstRow").style.display = "none";
+        } else {
+            document.getElementById("igst").innerText = totalTax.toFixed(2);
+            document.getElementById("cgstRow").style.display = "none";
+            document.getElementById("sgstRow").style.display = "none";
+            document.getElementById("igstRow").style.display = "block";
+        }
 
-let sub=0,cgst=0,sgst=0,igst=0;
+        document.getElementById("round").innerText = roundOff.toFixed(2);
+        document.getElementById("grand").innerText = rounded.toFixed(2);
+        document.getElementById("words").innerText = numberToWordsIndian(rounded);
+    }
 
-let state = document.getElementById("clientState").value.trim().toLowerCase();
-let isUP = (state === "uttar pradesh");
+    function numberToWordsIndian(num) {
+        const ones = ["", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten", "Eleven", "Twelve", "Thirteen", "Fourteen", "Fifteen", "Sixteen", "Seventeen", "Eighteen", "Nineteen"];
+        const tens = ["", "", "Twenty", "Thirty", "Forty", "Fifty", "Sixty", "Seventy", "Eighty", "Ninety"];
+        
+        if (num === 0) return "Zero Rupees Only";
 
-document.querySelectorAll("#tbody tr").forEach(r=>{
+        function convert(n) {
+            if (n < 20) return ones[n];
+            if (n < 100) return tens[Math.floor(n / 10)] + (n % 10 !== 0 ? " " + ones[n % 10] : "");
+            if (n < 1000) return ones[Math.floor(n / 100)] + " Hundred" + (n % 100 !== 0 ? " and " + convert(n % 100) : "");
+            if (n < 100000) return convert(Math.floor(n / 1000)) + " Thousand" + (n % 1000 !== 0 ? " " + convert(n % 1000) : "");
+            if (n < 10000000) return convert(Math.floor(n / 100000)) + " Lakh" + (n % 100000 !== 0 ? " " + convert(n % 100000) : "");
+            return convert(Math.floor(n / 10000000)) + " Crore" + (n % 10000000 !== 0 ? " " + convert(n % 10000000) : "");
+        }
+        return convert(num) + " Rupees Only";
+    }
 
-let qty = Number(r.cells[3].children[0].value)||0;
-let rate = Number(r.cells[5].children[0].value)||0;
-let gst = Number(r.cells[6].children[0].value)||0;
+    function preparePDF(){
+        const element = document.getElementById('quote');
+        const opt = {
+            margin: 0,
+            filename: document.getElementById('qno').value + '.pdf',
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 3, useCORS: true },
+            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        };
+        html2pdf().set(opt).from(element).save();
+    }
 
-let amount = qty * rate;
-let gstVal = amount * gst / 100;
-
-r.cells[7].innerText = (amount + gstVal).toFixed(2);
-
-sub += amount;
-
-if(isUP){
-cgst += gstVal/2;
-sgst += gstVal/2;
-}else{
-igst += gstVal;
-}
-
-});
-
-let total = sub + cgst + sgst + igst;
-
-let rounded = Math.round(total);
-let roundOff = rounded - total;
-
-document.getElementById("sub").innerText = sub.toFixed(2);
-document.getElementById("cgst").innerText = cgst.toFixed(2);
-document.getElementById("sgst").innerText = sgst.toFixed(2);
-document.getElementById("igst").innerText = igst.toFixed(2);
-document.getElementById("round").innerText = roundOff.toFixed(2);
-document.getElementById("grand").innerText = rounded.toFixed(2);
-
-document.getElementById("cgstRow").style.display = isUP ? "block":"none";
-document.getElementById("sgstRow").style.display = isUP ? "block":"none";
-document.getElementById("igstRow").style.display = isUP ? "none":"block";
-
-document.getElementById("words").innerText = numberToWordsIndian(rounded);
-
-}
-
-<!-- ONLY numberToWordsIndian FUNCTION UPDATED -->
-
-<script>
-
-// ✅ FINAL PERFECT INDIAN NUMBER SYSTEM
-function numberToWordsIndian(num){
-
-const ones = ["","One","Two","Three","Four","Five","Six","Seven","Eight","Nine","Ten",
-"Eleven","Twelve","Thirteen","Fourteen","Fifteen","Sixteen","Seventeen","Eighteen","Nineteen"];
-
-const tens = ["","","Twenty","Thirty","Forty","Fifty","Sixty","Seventy","Eighty","Ninety"];
-
-function twoDigit(n){
-if(n < 20) return ones[n];
-return tens[Math.floor(n/10)] + " " + ones[n%10];
-}
-
-let result = "";
-
-// CRORE
-if(num >= 10000000){
-result += twoDigit(Math.floor(num/10000000)) + " Crore ";
-num = num % 10000000;
-}
-
-// LAKH
-if(num >= 100000){
-result += twoDigit(Math.floor(num/100000)) + " Lakh ";
-num = num % 100000;
-}
-
-// THOUSAND
-if(num >= 1000){
-result += twoDigit(Math.floor(num/1000)) + " Thousand ";
-num = num % 1000;
-}
-
-// HUNDRED
-if(num >= 100){
-result += ones[Math.floor(num/100)] + " Hundred ";
-num = num % 100;
-}
-
-// LAST TWO DIGITS
-if(num > 0){
-result += twoDigit(num);
-}
-
-return result.trim() + " Rupees Only";
-}
-
+    addRow();
 </script>
 
-function preparePDF(){
-html2pdf().from(document.getElementById("quote")).save();
-}
-
-addRow();
-
-</script>
+<datalist id="units">
+    <option value="gm"><option value="kg"><option value="ml"><option value="Litre"><option value="Nos">
+</datalist>
 
 </body>
 </html>
