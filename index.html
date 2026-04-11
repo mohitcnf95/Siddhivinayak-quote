@@ -11,7 +11,6 @@
     <style>
         body { font-family: sans-serif; background: #f0f2f5; margin: 0; padding: 10px; }
         
-        /* UI Controls - Hidden in PDF */
         .no-print { 
             max-width: 500px; margin: 0 auto 20px; background: white; padding: 20px; 
             border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); 
@@ -20,39 +19,42 @@
         .btn-add { background: #e7f3ff; color: #1877f2; }
         .btn-dl { background: #1c1e21; color: white; }
 
-        /* A4 PDF Document Styling */
         #quote { 
             display: block; width: 210mm; min-height: 297mm; margin: auto; 
             background: white; padding: 15mm; box-sizing: border-box; color: black;
         }
         .p-header { text-align: center; border-bottom: 1px solid #000; padding-bottom: 8px; margin-bottom: 15px; }
-        .p-header h2 { margin: 0; font-size: 22px; }
-        .p-header p { margin: 2px 0; font-size: 12px; }
-
         .doc-title { text-align: center; text-decoration: underline; margin: 10px 0; font-size: 18px; }
 
         .p-info-table { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
         .p-info-table td { border: 1px solid #000; padding: 5px; font-size: 11px; }
 
-        .p-address-row { display: flex; gap: 15px; margin-bottom: 15px; }
-        .p-address-box { flex: 1; border: 1px solid #000; padding: 8px; min-height: 80px; font-size: 11px; word-wrap: break-word; white-space: pre-wrap; }
+        /* Billed/Shipped Box Styling */
+        .p-address-row { display: flex; gap: 15px; margin-bottom: 15px; align-items: stretch; }
+        .p-address-box { flex: 1; border: 1px solid #000; padding: 8px; min-height: 90px; }
+        .p-address-box textarea {
+            width: 100%; min-height: 80px; overflow: hidden; resize: none; border: none;
+            font-family: inherit; font-size: 11px; line-height: 1.4; white-space: pre-wrap;
+            word-wrap: break-word; background: transparent; display: block; outline: none;
+        }
 
-        /* Table Wrapping Fix */
+        /* TABLE GRID BORDERS PRESERVED */
         table { width: 100%; border-collapse: collapse; table-layout: fixed; }
-        th, td { border: 1px solid #000; padding: 6px; font-size: 10px; text-align: center; word-wrap: break-word; overflow: hidden; }
+        th, td { border: 1px solid #000 !important; padding: 6px; font-size: 10px; text-align: center; vertical-align: middle; overflow: hidden; }
         th { background: #f2f2f2; }
         
-        /* Input/Textarea Styling inside Table */
+        /* TEXT WRAPPING LOGIC FOR INPUTS */
         td textarea, td input { 
             width: 100%; border: none; font-family: inherit; font-size: 10px; 
-            background: transparent; padding: 0; margin: 0; resize: none; 
-            display: block; text-align: center;
+            background: transparent; padding: 2px; margin: 0; resize: none; 
+            display: block; outline: none; text-align: center;
+            white-space: pre-wrap; /* Forces text to wrap to next line */
+            word-wrap: break-word;
         }
-        td textarea { text-align: left; height: auto; min-height: 20px; }
+        td textarea { text-align: left; height: auto; min-height: 20px; overflow: hidden; }
 
         .p-totals { text-align: right; margin-top: 15px; font-size: 13px; line-height: 1.6; }
         .p-grand-total { font-size: 16px; font-weight: bold; border-top: 1px solid #000; padding-top: 5px; display: inline-block; min-width: 200px; }
-
         .p-bottom-row { display: flex; justify-content: space-between; margin-top: 20px; border: 1px solid #000; }
         .p-bottom-box { padding: 8px; font-size: 10px; flex: 1; border-right: 1px solid #000; }
         .p-footer { display: flex; justify-content: space-between; margin-top: 50px; font-size: 12px; }
@@ -107,20 +109,20 @@
     </table>
 
     <div class="p-address-row">
-        <div class="p-address-box"><b>Billed To:</b><br><textarea id="billed" placeholder="Customer Name&#10;Address&#10;GSTIN" oninput="calc()"></textarea></div>
-        <div class="p-address-box"><b>Shipped To:</b><br><textarea id="shipped"></textarea></div>
+        <div class="p-address-box"><b>Billed To:</b><br><textarea id="billed" placeholder="Name&#10;Address&#10;GSTIN" oninput="autoExpand(this); calc()"></textarea></div>
+        <div class="p-address-box"><b>Shipped To:</b><br><textarea id="shipped" oninput="autoExpand(this)"></textarea></div>
     </div>
 
     <table>
         <thead>
             <tr>
-                <th style="width: 30%;">Item Description</th>
-                <th>CAS No</th>
+                <th style="width: 32%;">Item Description</th>
+                <th style="width: 15%;">CAS No</th>
                 <th>Pack</th>
-                <th style="width: 10%;">Qty</th>
-                <th>Unit</th>
+                <th style="width: 8%;">Qty</th>
+                <th style="width: 8%;">Unit</th>
                 <th>Rate</th>
-                <th>GST%</th>
+                <th style="width: 8%;">GST%</th>
                 <th style="width: 12%;">Total</th>
             </tr>
         </thead>
@@ -129,29 +131,17 @@
 
     <div class="p-totals">
         <p>Subtotal: ₹ <span id="sub">0.00</span></p>
-        <p id="cgstRow">CGST: ₹ <span id="cgst">0.00</span></p>
-        <p id="sgstRow">SGST: ₹ <span id="sgst">0.00</span></p>
-        <p id="igstRow" style="display:none;">IGST: ₹ <span id="igst">0.00</span></p>
+        <div id="p_tax_container"></div>
         <p>Round Off: ₹ <span id="round">0.00</span></p>
         <div class="p-grand-total">Total: ₹ <span id="grand">0.00</span></div>
         <p><b>Amount in Words:</b> <span id="words">Zero Rupees Only</span></p>
     </div>
 
     <div class="p-bottom-row">
-        <div class="p-bottom-box">
-            <b>Bank Details:</b><br>
-            Bank: UNION BANK OF INDIA<br>
-            A/C No.: 424301010040874<br>
-            IFSC Code: UBIN0542431
-        </div>
+        <div class="p-bottom-box"><b>Bank Details:</b><br>UNION BANK OF INDIA | A/C: 424301010040874 | IFSC: UBIN0542431</div>
         <div class="p-bottom-box" style="border-right:none;">
             <b>Terms & Conditions:</b><br>
-            E.& O.E. <br>
-            1. Check specifications before confirming order.<br>
-            2. Price validity 15 days unless specified.<br>
-            3. Payment 100% Advance by RTGS/NEFT.<br>
-            4. Items are for R&D/Laboratory use ONLY.<br>
-            5. Goods once sold will not be taken back.
+            1. Check specs before confirming. 2. Price validity 15 days. 3. 100% Advance. 4. R&D use ONLY. 5. No returns.
         </div>
     </div>
 
@@ -164,6 +154,11 @@
 <script>
     flatpickr("#today", { dateFormat: "d-M-Y", defaultDate: new Date() });
 
+    function autoExpand(el) {
+        el.style.height = 'auto';
+        el.style.height = el.scrollHeight + 'px';
+    }
+
     function updateTitle(){
         let type = document.getElementById("docType").value;
         document.getElementById("docTitle").innerText = type;
@@ -173,11 +168,11 @@
     function addRow(){
         let tr = document.createElement("tr");
         tr.innerHTML = `
-            <td><textarea class="i_name" oninput="calc()"></textarea></td>
-            <td><input class="i_cas"></td>
-            <td><input class="i_pack"></td>
+            <td><textarea class="i_name" oninput="autoExpand(this); calc()"></textarea></td>
+            <td><textarea class="i_cas" oninput="autoExpand(this)"></textarea></td>
+            <td><textarea class="i_pack" oninput="autoExpand(this)"></textarea></td>
             <td><input type="number" class="i_qty" value="1" oninput="calc()"></td>
-            <td><input value="gm"></td>
+            <td><input value="kg"></td>
             <td><input type="number" class="i_rate" value="0" oninput="calc()"></td>
             <td><input type="number" class="i_gst" value="18" oninput="calc()"></td>
             <td class="i_total">0.00</td>
@@ -189,33 +184,20 @@
     function calc(){
         let sub=0, tax=0;
         let isUP = document.getElementById("clientState").value === "Uttar Pradesh";
-
         document.querySelectorAll("#tbody tr").forEach(row => {
             let q = parseFloat(row.querySelector(".i_qty").value) || 0;
             let r = parseFloat(row.querySelector(".i_rate").value) || 0;
             let g = parseFloat(row.querySelector(".i_gst").value) || 0;
-            
-            let amt = q * r;
-            let gstAmt = amt * (g/100);
-            row.querySelector(".i_total").innerText = (amt + gstAmt).toFixed(2);
-            
-            sub += amt;
-            tax += gstAmt;
+            let rowAmt = q * r;
+            let gstAmt = rowAmt * (g/100);
+            row.querySelector(".i_total").innerText = (rowAmt + gstAmt).toFixed(2);
+            sub += rowAmt; tax += gstAmt;
         });
-
-        let grand = sub + tax;
-        let rounded = Math.round(grand);
-        
+        let rounded = Math.round(sub + tax);
         document.getElementById("sub").innerText = sub.toFixed(2);
-        document.getElementById("cgst").innerText = isUP ? (tax/2).toFixed(2) : "0.00";
-        document.getElementById("sgst").innerText = isUP ? (tax/2).toFixed(2) : "0.00";
-        document.getElementById("igst").innerText = isUP ? "0.00" : tax.toFixed(2);
-        
-        document.getElementById("cgstRow").style.display = isUP ? "block" : "none";
-        document.getElementById("sgstRow").style.display = isUP ? "block" : "none";
-        document.getElementById("igstRow").style.display = isUP ? "none" : "block";
-
-        document.getElementById("round").innerText = (rounded - grand).toFixed(2);
+        document.getElementById("p_tax_container").innerHTML = isUP ? 
+            `<p>CGST: ₹ ${(tax/2).toFixed(2)}</p><p>SGST: ₹ ${(tax/2).toFixed(2)}</p>` : `<p>IGST: ₹ ${tax.toFixed(2)}</p>`;
+        document.getElementById("round").innerText = (rounded - (sub + tax)).toFixed(2);
         document.getElementById("grand").innerText = rounded.toFixed(2);
         document.getElementById("words").innerText = numberToWordsIndian(rounded);
     }
@@ -235,13 +217,13 @@
     }
 
     async function preparePDF() {
+        // Force wrap and height before generating PDF
+        document.querySelectorAll('textarea').forEach(el => autoExpand(el));
+
         const scriptURL = 'https://script.google.com/macros/s/AKfycbwHNCeO-DRAIOJTcbOQgTgBm_BarXPgDSxTx5HU1arKxWkdyGHc2AQIlVZozTMyKFc/exec';
         const docNo = document.getElementById("qno").value;
-        const fullBilled = document.getElementById("billed").value;
-        const customerName = fullBilled.split('\n')[0].trim();
-        const grandTotal = document.getElementById("grand").innerText;
-
-        // Collect Items for Sheet
+        const custName = document.getElementById("billed").value.split('\n')[0].trim();
+        
         let pList = [], qList = [], rList = [];
         document.querySelectorAll("#tbody tr").forEach(row => {
             pList.push(row.querySelector(".i_name").value);
@@ -249,29 +231,20 @@
             rList.push(row.querySelector(".i_rate").value);
         });
 
-        // Sync to Google Sheet
         const formData = new FormData();
         formData.append('InvoiceNo', docNo);
-        formData.append('CustomerName', customerName);
-        formData.append('Place', document.getElementById("place").value);
+        formData.append('CustomerName', custName);
         formData.append('Products', pList.join(", "));
         formData.append('Qty', qList.join(", "));
         formData.append('Rate', rList.join(", "));
-        formData.append('GrandTotal', grandTotal);
-        
-        fetch(scriptURL, { method: 'POST', body: formData }).catch(e => console.log('Sheet sync failed', e));
+        formData.append('GrandTotal', document.getElementById("grand").innerText);
+        fetch(scriptURL, { method: 'POST', body: formData }).catch(e => console.log('Sheet sync error', e));
 
-        // Generate PDF
-        const element = document.getElementById('quote');
-        const opt = {
-            margin: 0,
-            filename: docNo + '.pdf',
-            html2canvas: { scale: 3 },
+        html2pdf().from(document.getElementById('quote')).set({
+            margin: 0, filename: docNo + '.pdf', html2canvas: { scale: 3 },
             jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-        };
-        html2pdf().set(opt).from(element).save();
+        }).save();
     }
-
     addRow();
 </script>
 </body>
