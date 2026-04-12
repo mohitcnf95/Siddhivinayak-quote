@@ -10,48 +10,33 @@
 
     <style>
         body { font-family: sans-serif; background: #f0f2f5; margin: 0; padding: 10px; }
-        
-        .no-print { 
-            max-width: 500px; margin: 0 auto 20px; background: white; padding: 20px; 
-            border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); 
-        }
+        .no-print { max-width: 500px; margin: 0 auto 20px; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
         .btn { padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 10px; }
         .btn-add { background: #e7f3ff; color: #1877f2; }
         .btn-dl { background: #1c1e21; color: white; }
 
-        #quote { 
-            display: block; width: 210mm; min-height: 297mm; margin: auto; 
-            background: white; padding: 15mm; box-sizing: border-box; color: black;
-        }
+        #quote { display: block; width: 210mm; min-height: 297mm; margin: auto; background: white; padding: 15mm; box-sizing: border-box; color: black; }
         .p-header { text-align: center; border-bottom: 1px solid #000; padding-bottom: 8px; margin-bottom: 15px; }
         .doc-title { text-align: center; text-decoration: underline; margin: 10px 0; font-size: 18px; }
 
-        .p-info-table { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
-        .p-info-table td { border: 1px solid #000; padding: 5px; font-size: 11px; }
+        .p-info-table { width: 100%; border-collapse: collapse; margin-bottom: 15px; }
+        .p-info-table td { border: 1px solid #000; padding: 6px; font-size: 11px; }
+        .p-info-table input { width: 100%; border: none; outline: none; background: transparent; font-size: 11px; }
 
-        /* Billed/Shipped Box Styling */
         .p-address-row { display: flex; gap: 15px; margin-bottom: 15px; align-items: stretch; }
         .p-address-box { flex: 1; border: 1px solid #000; padding: 8px; min-height: 90px; }
-        .p-address-box textarea {
-            width: 100%; min-height: 80px; overflow: hidden; resize: none; border: none;
-            font-family: inherit; font-size: 11px; line-height: 1.4; white-space: pre-wrap;
-            word-wrap: break-word; background: transparent; display: block; outline: none;
-        }
+        .p-address-box textarea { width: 100%; min-height: 80px; overflow: hidden; resize: none; border: none; font-family: inherit; font-size: 11px; line-height: 1.4; white-space: pre-wrap; word-wrap: break-word; background: transparent; display: block; outline: none; }
 
-        /* TABLE GRID BORDERS PRESERVED */
-        table { width: 100%; border-collapse: collapse; table-layout: fixed; }
-        th, td { border: 1px solid #000 !important; padding: 6px; font-size: 10px; text-align: center; vertical-align: middle; overflow: hidden; }
-        th { background: #f2f2f2; }
+        /* Table Wrapping & Borders */
+        table.item-table { width: 100%; border-collapse: collapse; table-layout: fixed; border: 1px solid #000; }
+        table.item-table th, table.item-table td { border: 1px solid #000; padding: 0; font-size: 11px; vertical-align: top; }
+        table.item-table th { background: #f2f2f2; padding: 8px; font-weight: bold; text-align: center; vertical-align: middle; }
         
-        /* TEXT WRAPPING LOGIC FOR INPUTS */
-        td textarea, td input { 
-            width: 100%; border: none; font-family: inherit; font-size: 10px; 
-            background: transparent; padding: 2px; margin: 0; resize: none; 
-            display: block; outline: none; text-align: center;
-            white-space: pre-wrap; /* Forces text to wrap to next line */
-            word-wrap: break-word;
-        }
-        td textarea { text-align: left; height: auto; min-height: 20px; overflow: hidden; }
+        table.item-table td textarea, table.item-table td input { width: 100%; border: none !important; font-family: inherit; font-size: 11px; background: transparent !important; padding: 8px !important; margin: 0; resize: none; display: block; outline: none; box-sizing: border-box; white-space: pre-wrap; word-wrap: break-word; overflow: hidden; text-align: center; }
+        table.item-table td textarea { text-align: left; }
+        
+        .num-input { text-align: center !important; }
+        .i_total { padding: 8px !important; text-align: center; font-weight: 500; display: block; }
 
         .p-totals { text-align: right; margin-top: 15px; font-size: 13px; line-height: 1.6; }
         .p-grand-total { font-size: 16px; font-weight: bold; border-top: 1px solid #000; padding-top: 5px; display: inline-block; min-width: 200px; }
@@ -66,18 +51,50 @@
     <h3 style="text-align:center;">SVT Document Editor</h3>
     <div style="margin-bottom:10px;">
         <label style="font-size:12px; font-weight:bold;">Document Type:</label>
-        <select id="docType" onchange="updateTitle()" style="width:100%; padding:10px; border-radius:6px;">
+        <select id="docType" onchange="updateTitle()" style="width:100%; padding:10px;">
             <option value="QUOTATION">Quotation</option>
             <option value="PROFORMA INVOICE">Proforma Invoice</option>
         </select>
     </div>
     <div style="margin-bottom:10px;">
-        <label style="font-size:12px; font-weight:bold;">Select State:</label>
-        <select id="clientState" onchange="calc()" style="width:100%; padding:10px; border-radius:6px;">
-            <option value="Uttar Pradesh" selected>Uttar Pradesh</option>
-            <option value="Delhi">Delhi</option>
-            <option value="Haryana">Haryana</option>
-            <option value="Other">Other State</option>
+        <label style="font-size:12px; font-weight:bold;">Select State (Place of Supply):</label>
+        <select id="clientState" onchange="calc()" style="width:100%; padding:10px;">
+            <option value="01">Jammu & Kashmir (01)</option>
+            <option value="02">Himachal Pradesh (02)</option>
+            <option value="03">Punjab (03)</option>
+            <option value="04">Chandigarh (04)</option>
+            <option value="05">Uttarakhand (05)</option>
+            <option value="06">Haryana (06)</option>
+            <option value="07">Delhi (07)</option>
+            <option value="08">Rajasthan (08)</option>
+            <option value="09" selected>Uttar Pradesh (09)</option>
+            <option value="10">Bihar (10)</option>
+            <option value="11">Sikkim (11)</option>
+            <option value="12">Arunachal Pradesh (12)</option>
+            <option value="13">Nagaland (13)</option>
+            <option value="14">Manipur (14)</option>
+            <option value="15">Mizoram (15)</option>
+            <option value="16">Tripura (16)</option>
+            <option value="17">Meghalaya (17)</option>
+            <option value="18">Assam (18)</option>
+            <option value="19">West Bengal (19)</option>
+            <option value="20">Jharkhand (20)</option>
+            <option value="21">Odisha (21)</option>
+            <option value="22">Chhattisgarh (22)</option>
+            <option value="23">Madhya Pradesh (23)</option>
+            <option value="24">Gujarat (24)</option>
+            <option value="25">Daman & Diu (25)</option>
+            <option value="26">Dadra & Nagar Haveli (26)</option>
+            <option value="27">Maharashtra (27)</option>
+            <option value="30">Goa (30)</option>
+            <option value="31">Lakshadweep (31)</option>
+            <option value="32">Kerala (32)</option>
+            <option value="33">Tamil Nadu (33)</option>
+            <option value="34">Puducherry (34)</option>
+            <option value="35">Andaman & Nicobar Islands (35)</option>
+            <option value="36">Telangana (36)</option>
+            <option value="37">Andhra Pradesh (37)</option>
+            <option value="38">Ladakh (38)</option>
         </select>
     </div>
     <button class="btn btn-add" onclick="addRow()">+ Add New Item</button>
@@ -113,7 +130,7 @@
         <div class="p-address-box"><b>Shipped To:</b><br><textarea id="shipped" oninput="autoExpand(this)"></textarea></div>
     </div>
 
-    <table>
+    <table class="item-table">
         <thead>
             <tr>
                 <th style="width: 32%;">Item Description</th>
@@ -121,8 +138,8 @@
                 <th>Pack</th>
                 <th style="width: 8%;">Qty</th>
                 <th style="width: 8%;">Unit</th>
-                <th>Rate</th>
-                <th style="width: 8%;">GST%</th>
+                <th style="width: 10%;">Rate</th>
+                <th style="width: 7%;">GST%</th>
                 <th style="width: 12%;">Total</th>
             </tr>
         </thead>
@@ -138,10 +155,18 @@
     </div>
 
     <div class="p-bottom-row">
-        <div class="p-bottom-box"><b>Bank Details:</b><br>UNION BANK OF INDIA | A/C: 424301010040874 | IFSC: UBIN0542431</div>
+        <div class="p-bottom-box">
+            <b>Bank Details:</b><br>Bank: UNION BANK OF INDIA<br>A/C No.: 424301010040874<br>IFSC Code: UBIN0542431
+        </div>
         <div class="p-bottom-box" style="border-right:none;">
             <b>Terms & Conditions:</b><br>
-            1. Check specs before confirming. 2. Price validity 15 days. 3. 100% Advance. 4. R&D use ONLY. 5. No returns.
+            1. KINDLY CHECK COMPLETE SPECIFICATIONS BEFORE PLACING YOUR CONFIRMED PURCHASE ORDER.<br>
+            2. GST % & HSN Code may be changed as per Government act.<br>
+            3. Payment 100% Advance by Cheque/RTGS/NEFT.<br>
+            4. Price validity 15 days unless specified.<br>
+            5. Stock details subject to change.<br>
+            6. Goods once sold will not be taken back.<br>
+            7. The mentioned item/items in the quotation are for R&D purpose only.
         </div>
     </div>
 
@@ -154,10 +179,7 @@
 <script>
     flatpickr("#today", { dateFormat: "d-M-Y", defaultDate: new Date() });
 
-    function autoExpand(el) {
-        el.style.height = 'auto';
-        el.style.height = el.scrollHeight + 'px';
-    }
+    function autoExpand(el) { el.style.height = 'auto'; el.style.height = el.scrollHeight + 'px'; }
 
     function updateTitle(){
         let type = document.getElementById("docType").value;
@@ -168,14 +190,14 @@
     function addRow(){
         let tr = document.createElement("tr");
         tr.innerHTML = `
-            <td><textarea class="i_name" oninput="autoExpand(this); calc()"></textarea></td>
-            <td><textarea class="i_cas" oninput="autoExpand(this)"></textarea></td>
-            <td><textarea class="i_pack" oninput="autoExpand(this)"></textarea></td>
-            <td><input type="number" class="i_qty" value="1" oninput="calc()"></td>
-            <td><input value="kg"></td>
-            <td><input type="number" class="i_rate" value="0" oninput="calc()"></td>
-            <td><input type="number" class="i_gst" value="18" oninput="calc()"></td>
-            <td class="i_total">0.00</td>
+            <td><textarea class="i_name" oninput="autoExpand(this); calc()" placeholder="Item name"></textarea></td>
+            <td><textarea class="i_cas" oninput="autoExpand(this)" placeholder="CAS"></textarea></td>
+            <td><textarea class="i_pack" oninput="autoExpand(this)" placeholder="Pack"></textarea></td>
+            <td><input type="number" class="i_qty num-input" value="1" oninput="calc()"></td>
+            <td><input class="num-input" value="kg"></td>
+            <td><input type="number" class="i_rate num-input" value="0" oninput="calc()"></td>
+            <td><input type="number" class="i_gst num-input" value="18" oninput="calc()"></td>
+            <td><span class="i_total">0.00</span></td>
         `;
         document.getElementById("tbody").appendChild(tr);
         calc();
@@ -183,7 +205,7 @@
 
     function calc(){
         let sub=0, tax=0;
-        let isUP = document.getElementById("clientState").value === "Uttar Pradesh";
+        let isUP = document.getElementById("clientState").value === "09";
         document.querySelectorAll("#tbody tr").forEach(row => {
             let q = parseFloat(row.querySelector(".i_qty").value) || 0;
             let r = parseFloat(row.querySelector(".i_rate").value) || 0;
@@ -217,33 +239,23 @@
     }
 
     async function preparePDF() {
-        // Force wrap and height before generating PDF
         document.querySelectorAll('textarea').forEach(el => autoExpand(el));
-
         const scriptURL = 'https://script.google.com/macros/s/AKfycbwHNCeO-DRAIOJTcbOQgTgBm_BarXPgDSxTx5HU1arKxWkdyGHc2AQIlVZozTMyKFc/exec';
         const docNo = document.getElementById("qno").value;
         const custName = document.getElementById("billed").value.split('\n')[0].trim();
-        
         let pList = [], qList = [], rList = [];
         document.querySelectorAll("#tbody tr").forEach(row => {
             pList.push(row.querySelector(".i_name").value);
             qList.push(row.querySelector(".i_qty").value);
             rList.push(row.querySelector(".i_rate").value);
         });
-
         const formData = new FormData();
-        formData.append('InvoiceNo', docNo);
-        formData.append('CustomerName', custName);
-        formData.append('Products', pList.join(", "));
-        formData.append('Qty', qList.join(", "));
-        formData.append('Rate', rList.join(", "));
-        formData.append('GrandTotal', document.getElementById("grand").innerText);
-        fetch(scriptURL, { method: 'POST', body: formData }).catch(e => console.log('Sheet sync error', e));
-
-        html2pdf().from(document.getElementById('quote')).set({
-            margin: 0, filename: docNo + '.pdf', html2canvas: { scale: 3 },
-            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-        }).save();
+        formData.append('InvoiceNo', docNo); formData.append('CustomerName', custName);
+        formData.append('Place', document.getElementById("place").value);
+        formData.append('Products', pList.join(", ")); formData.append('Qty', qList.join(", "));
+        formData.append('Rate', rList.join(", ")); formData.append('GrandTotal', document.getElementById("grand").innerText);
+        fetch(scriptURL, { method: 'POST', body: formData }).catch(e => console.log('Offline'));
+        html2pdf().from(document.getElementById('quote')).set({ margin: 0, filename: docNo + '.pdf', html2canvas: { scale: 3 }, jsPDF: { unit: 'mm', format: 'a4' } }).save();
     }
     addRow();
 </script>
