@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SVT Document System</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f0f2f5;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            gap: 30px;
+            flex-wrap: wrap;
+        }
+
+        @media (max-width: 850px) {
+            body {
+                padding: 10px;
+                gap: 20px;
+            }
+        }
+
+        .no-print {
+            width: 400px;
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 20px;
+            z-index: 100;
+        }
+
+        @media (max-width: 850px) {
+            .no-print {
+                width: 100%;
+                position: relative;
+                top: 0;
+                margin-bottom: 20px;
+            }
+        }
+
+        .btn {
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            background: #ccc;
+        }
+
+        .btn-add {
+            background: #e7f3ff;
+            color: #1877f2;
+        }
+
+        .btn-dl {
+            background: #1c1e21;
+            color: white;
+        }
+
+        .preview-container {
+            width: auto;
+            max-width: 100%;
+            overflow-x: auto;
+            padding-bottom: 20px;
+        }
+
+        #quote {
+            display: block;
+            width: 210mm;
+            min-height: 296mm;
+            background: white;
+            padding: 15mm;
+            box-sizing: border-box;
+            color: black;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            margin: 0 auto;
+            transform-origin: top center;
+        }
+
+        /* Responsive scaling for preview on very small screens */
+        @media (max-width: 500px) {
+            .preview-container {
+                overflow-x: auto;
+                display: block;
+                padding: 0;
+            }
+
+            #quote {
+                margin: 0;
+                /* Optional: reduce padding on mobile to save space */
+                padding: 10mm;
+            }
+        }
+
+        .p-header {
+            text-align: center;
+            border-bottom: 1px solid #000;
+            padding-bottom: 8px;
+            margin-bottom: 15px;
+        }
+
+        .p-header h2 {
+            margin: 0 0 5px 0;
+        }
+
+        .p-header p {
+            margin: 2px 0;
+        }
+
+        .doc-title {
+            text-align: center;
+            text-decoration: underline;
+            margin: 5px 0;
+            font-size: 18px;
+        }
+
+        .p-info-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 10px;
+        }
+
+        .p-info-table td {
+            border: 1px solid #000;
+            padding: 6px;
+            font-size: 11px;
+        }
+
+        .p-info-table input {
+            width: 100%;
+            border: none;
+            outline: none;
+            background: transparent;
+            font-size: 11px;
+        }
+
+        .p-address-row {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+            align-items: stretch;
+            width: 100%;
+        }
+
+        .p-address-box {
+            flex: 1;
+            border: 1px solid #000;
+            padding: 8px;
+            min-height: 100px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .p-address-box textarea {
+            width: 100%;
+            min-height: 80px;
+            overflow: hidden;
+            resize: none;
+            border: none;
+            font-family: inherit;
+            font-size: 11px;
+            line-height: 1.4;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            background: transparent;
+            display: block;
+            outline: none;
+        }
+
+        /* Table Wrapping & Borders */
+        table.item-table {
+            width: 100%;
+            margin-top: 10px;
+            border-collapse: collapse;
+            table-layout: fixed;
+            border: 1px solid #000;
+        }
+
+        table.item-table th,
+        table.item-table td {
+            border: 1px solid #000;
+            padding: 0;
+            font-size: 11px;
+            vertical-align: top;
+        }
+
+        table.item-table th {
+            background: #f2f2f2;
+            padding: 8px;
+            font-weight: bold;
+            text-align: center;
+            vertical-align: middle;
+        }
+
+        table.item-table td textarea,
+        table.item-table td input {
+            width: 100%;
+            border: none !important;
+            font-family: inherit;
+            font-size: 11px;
+            background: transparent !important;
+            padding: 8px !important;
+            margin: 0;
+            resize: none;
+            display: block;
+            outline: none;
+            box-sizing: border-box;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            overflow: hidden;
+            text-align: center;
+        }
+
+        table.item-table td textarea {
+            text-align: left;
+        }
+
+        .num-input {
+            text-align: center !important;
+        }
+
+        .i_total {
+            padding: 8px !important;
+            text-align: center;
+            font-weight: 500;
+            display: block;
+        }
+
+        .p-totals {
+            text-align: right;
+            margin-top: 15px;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .p-grand-total {
+            font-size: 16px;
+            font-weight: bold;
+            border-top: 1px solid #000;
+            padding-top: 5px;
+            display: inline-block;
+            min-width: 200px;
+        }
+
+        .p-bottom-row {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+            border: 1px solid #000;
+        }
+
+        .p-bottom-box {
+            padding: 8px;
+            font-size: 10px;
+            flex: 1;
+            border-right: 1px solid #000;
+        }
+
+        .p-footer {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 50px;
+            font-size: 12px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="no-print">
+        <h3 style="text-align:center;">SVT Document Editor</h3>
+        <div style="margin-bottom:10px;">
+            <label style="font-size:12px; font-weight:bold;">Document Type:</label>
+            <select id="docType" onchange="updateTitle()"
+                style="width:100%; padding:12px; font-size: 16px; border-radius: 8px; border: 1px solid #ddd;">
+                <option value="QUOTATION">Quotation</option>
+                <option value="PROFORMA INVOICE">Proforma Invoice</option>
+            </select>
+        </div>
+        <div style="margin-bottom:10px;">
+            <label style="font-size:12px; font-weight:bold;">Select State (Place of Supply):</label>
+            <select id="clientState" onchange="calc()"
+                style="width:100%; padding:12px; font-size: 16px; border-radius: 8px; border: 1px solid #ddd;">
+                <option value="01">Jammu & Kashmir (01)</option>
+                <option value="02">Himachal Pradesh (02)</option>
+                <option value="03">Punjab (03)</option>
+                <option value="04">Chandigarh (04)</option>
+                <option value="05">Uttarakhand (05)</option>
+                <option value="06">Haryana (06)</option>
+                <option value="07">Delhi (07)</option>
+                <option value="08">Rajasthan (08)</option>
+                <option value="09" selected>Uttar Pradesh (09)</option>
+                <option value="10">Bihar (10)</option>
+                <option value="11">Sikkim (11)</option>
+                <option value="12">Arunachal Pradesh (12)</option>
+                <option value="13">Nagaland (13)</option>
+                <option value="14">Manipur (14)</option>
+                <option value="15">Mizoram (15)</option>
+                <option value="16">Tripura (16)</option>
+                <option value="17">Meghalaya (17)</option>
+                <option value="18">Assam (18)</option>
+                <option value="19">West Bengal (19)</option>
+                <option value="20">Jharkhand (20)</option>
+                <option value="21">Odisha (21)</option>
+                <option value="22">Chhattisgarh (22)</option>
+                <option value="23">Madhya Pradesh (23)</option>
+                <option value="24">Gujarat (24)</option>
+                <option value="25">Daman & Diu (25)</option>
+                <option value="26">Dadra & Nagar Haveli (26)</option>
+                <option value="27">Maharashtra (27)</option>
+                <option value="30">Goa (30)</option>
+                <option value="31">Lakshadweep (31)</option>
+                <option value="32">Kerala (32)</option>
+                <option value="33">Tamil Nadu (33)</option>
+                <option value="34">Puducherry (34)</option>
+                <option value="35">Andaman & Nicobar Islands (35)</option>
+                <option value="36">Telangana (36)</option>
+                <option value="37">Andhra Pradesh (37)</option>
+                <option value="38">Ladakh (38)</option>
+            </select>
+        </div>
+        <button class="btn btn-add" onclick="addRow()">+ Add New Item</button>
+        <button class="btn btn-dl" onclick="preparePDF()">Download PDF & Sync Sheet</button>
+    </div>
+
+    <div class="preview-container">
+        <div id="quote">
+            <div class="p-header">
+                <h2>SIDDHI VINAYAK TRADERS</h2>
+                <p>12/306, Arya Nagar, Firozabad, UP - 283203</p>
+                <p>GSTIN: 09BFZPK4340C2Z7 | +91 9286107722 | svtjp11@gmail.com</p>
+            </div>
+
+            <div class="doc-title">
+                <h3 id="docTitle">QUOTATION</h3>
+            </div>
+
+            <table class="p-info-table">
+                <tr>
+                    <td><b id="docLabel">Quotation No:</b></td>
+                    <td><input id="qno" value="SVT-0001"></td>
+                    <td><b>Date:</b></td>
+                    <td><input id="today"></td>
+                </tr>
+                <tr>
+                    <td><b>Place (City):</b></td>
+                    <td><input id="place" value="Firozabad"></td>
+                    <td><b>Mode:</b></td>
+                    <td><input id="mode" value="Hand Delivery"></td>
+                </tr>
+            </table>
+
+            <div class="p-address-row">
+                <div class="p-address-box"><b>Billed To:</b><br><textarea id="billed"
+                        placeholder="Name&#10;Address&#10;GSTIN" oninput="autoExpand(this); calc()"></textarea></div>
+                <div class="p-address-box"><b>Shipped To:</b><br><textarea id="shipped"
+                        oninput="autoExpand(this)"></textarea></div>
+            </div>
+
+            <table class="item-table">
+                <thead>
+                    <tr>
+                        <th style="width: 32%;">Item Description</th>
+                        <th style="width: 15%;">CAS No</th>
+                        <th>Pack</th>
+                        <th style="width: 8%;">Qty</th>
+                        <th style="width: 8%;">Unit</th>
+                        <th style="width: 10%;">Rate</th>
+                        <th style="width: 7%;">GST%</th>
+                        <th style="width: 12%;">Total</th>
+                    </tr>
+                </thead>
+                <tbody id="tbody"></tbody>
+            </table>
+
+            <div class="p-totals">
+                <p>Subtotal: ₹ <span id="sub">0.00</span></p>
+                <div id="p_tax_container"></div>
+                <p>Round Off: ₹ <span id="round">0.00</span></p>
+                <div class="p-grand-total">Total: ₹ <span id="grand">0.00</span></div>
+                <p><b>Amount in Words:</b> <span id="words">Zero Rupees Only</span></p>
+            </div>
+
+            <div class="p-bottom-row">
+                <div class="p-bottom-box">
+                    <b>Bank Details:</b><br>Bank: UNION BANK OF INDIA<br>A/C No.: 424301010040874<br>IFSC Code:
+                    UBIN0542431
+                </div>
+                <div class="p-bottom-box" style="border-right:none;">
+                    <b>Terms & Conditions:</b><br>
+                    1. KINDLY CHECK COMPLETE SPECIFICATIONS BEFORE PLACING YOUR CONFIRMED PURCHASE ORDER.<br>
+                    2. GST % & HSN Code may be changed as per Government act.<br>
+                    3. Payment 100% Advance by Cheque/RTGS/NEFT.<br>
+                    4. Price validity 15 days unless specified.<br>
+                    5. Stock details subject to change.<br>
+                    6. Goods once sold will not be taken back.<br>
+                    7. The mentioned item/items in the quotation are for R&D purpose only.
+                </div>
+            </div>
+
+            <div class="p-footer">
+                <div>Receiver's Signature<br><br>____________________</div>
+                <div style="text-align: right;">For <b>Siddhi Vinayak Traders</b><br><br>Authorised Signatory</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        flatpickr("#today", { dateFormat: "d-M-Y", defaultDate: new Date() });
+
+        function autoExpand(el) { el.style.height = 'auto'; el.style.height = el.scrollHeight + 'px'; }
+
+        function updateTitle() {
+            let type = document.getElementById("docType").value;
+            document.getElementById("docTitle").innerText = type;
+            document.getElementById("docLabel").innerText = (type === "PROFORMA INVOICE") ? "PI No:" : "Quotation No:";
+        }
+
+        function addRow() {
+            let tr = document.createElement("tr");
+            tr.innerHTML = `
+            <td><textarea class="i_name" oninput="autoExpand(this); calc()" placeholder="Item name"></textarea></td>
+            <td><textarea class="i_cas" oninput="autoExpand(this)" placeholder="CAS"></textarea></td>
+            <td><textarea class="i_pack" oninput="autoExpand(this)" placeholder="Pack"></textarea></td>
+            <td><input type="number" class="i_qty num-input" value="1" oninput="calc()"></td>
+            <td><input class="num-input" value="kg"></td>
+            <td><input type="number" class="i_rate num-input" value="0" oninput="calc()"></td>
+            <td><input type="number" class="i_gst num-input" value="18" oninput="calc()"></td>
+            <td><span class="i_total">0.00</span></td>
+        `;
+            document.getElementById("tbody").appendChild(tr);
+            calc();
+        }
+
+        function calc() {
+            let sub = 0, tax = 0;
+            let isUP = document.getElementById("clientState").value === "09";
+            document.querySelectorAll("#tbody tr").forEach(row => {
+                let q = parseFloat(row.querySelector(".i_qty").value) || 0;
+                let r = parseFloat(row.querySelector(".i_rate").value) || 0;
+                let g = parseFloat(row.querySelector(".i_gst").value) || 0;
+                let rowAmt = q * r;
+                let gstAmt = rowAmt * (g / 100);
+                row.querySelector(".i_total").innerText = (rowAmt + gstAmt).toFixed(2);
+                sub += rowAmt; tax += gstAmt;
+            });
+            let rounded = Math.round(sub + tax);
+            document.getElementById("sub").innerText = sub.toFixed(2);
+            document.getElementById("p_tax_container").innerHTML = isUP ?
+                `<p>CGST: ₹ ${(tax / 2).toFixed(2)}</p><p>SGST: ₹ ${(tax / 2).toFixed(2)}</p>` : `<p>IGST: ₹ ${tax.toFixed(2)}</p>`;
+            document.getElementById("round").innerText = (rounded - (sub + tax)).toFixed(2);
+            document.getElementById("grand").innerText = rounded.toFixed(2);
+            document.getElementById("words").innerText = numberToWordsIndian(rounded);
+        }
+
+        function numberToWordsIndian(num) {
+            const ones = ["", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten", "Eleven", "Twelve", "Thirteen", "Fourteen", "Fifteen", "Sixteen", "Seventeen", "Eighteen", "Nineteen"];
+            const tens = ["", "", "Twenty", "Thirty", "Forty", "Fifty", "Sixty", "Seventy", "Eighty", "Ninety"];
+            function convert(n) {
+                if (n < 20) return ones[n];
+                if (n < 100) return tens[Math.floor(n / 10)] + (n % 10 !== 0 ? " " + ones[n % 10] : "");
+                if (n < 1000) return ones[Math.floor(n / 100)] + " Hundred" + (n % 100 !== 0 ? " " + convert(n % 100) : "");
+                if (n < 100000) return convert(Math.floor(n / 1000)) + " Thousand" + (n % 1000 !== 0 ? " " + convert(n % 1000) : "");
+                if (n < 10000000) return convert(Math.floor(n / 100000)) + " Lakh" + (n % 100000 !== 0 ? " " + convert(n % 100000) : "");
+                return convert(Math.floor(n / 10000000)) + " Crore" + (n % 10000000 !== 0 ? " " + convert(n % 10000000) : "");
+            }
+            return num > 0 ? convert(num) + " Rupees Only" : "Zero Rupees Only";
+        }
+
+        async function preparePDF() {
+            const btn = document.querySelector(".btn-dl");
+            const originalText = btn.innerHTML;
+            btn.innerHTML = "Processing... Please wait";
+            btn.disabled = true;
+
+            // Ensure all textareas are expanded
+            document.querySelectorAll('textarea').forEach(el => autoExpand(el));
+
+            // Workaround for textarea line breaks in html2pdf/html2canvas
+            const textareas = document.querySelectorAll('#quote textarea');
+            const backups = [];
+
+            textareas.forEach(ta => {
+                const displayDiv = document.createElement('div');
+                displayDiv.innerText = ta.value;
+                const style = window.getComputedStyle(ta);
+
+                // Copy styles to ensure visual consistency
+                displayDiv.style.whiteSpace = 'pre-wrap';
+                displayDiv.style.wordWrap = 'break-word';
+                displayDiv.style.fontFamily = style.fontFamily;
+                displayDiv.style.fontSize = style.fontSize;
+                displayDiv.style.lineHeight = style.lineHeight;
+                displayDiv.style.padding = style.padding;
+                displayDiv.style.color = style.color;
+                displayDiv.style.textAlign = style.textAlign;
+                displayDiv.style.width = '100%';
+                displayDiv.style.boxSizing = 'border-box';
+                displayDiv.style.minHeight = style.height;
+
+                ta.parentElement.insertBefore(displayDiv, ta);
+                ta.style.display = 'none';
+                backups.push({ ta, displayDiv });
+            });
+
+            const scriptURL = 'https://script.google.com/macros/s/AKfycbwHNCeO-DRAIOJTcbOQgTgBm_BarXPgDSxTx5HU1arKxWkdyGHc2AQIlVZozTMyKFc/exec';
+            const docNo = document.getElementById("qno").value;
+            const billedVal = document.getElementById("billed").value;
+            const custName = billedVal.split('\n')[0].trim();
+
+            let pList = [], qList = [], rList = [];
+            document.querySelectorAll("#tbody tr").forEach(row => {
+                pList.push(row.querySelector(".i_name").value);
+                qList.push(row.querySelector(".i_qty").value);
+                rList.push(row.querySelector(".i_rate").value);
+            });
+
+            const formData = new FormData();
+            formData.append('InvoiceNo', docNo);
+            formData.append('CustomerName', custName);
+            formData.append('Place', document.getElementById("place").value);
+            formData.append('Products', pList.join(", "));
+            formData.append('Qty', qList.join(", "));
+            formData.append('Rate', rList.join(", "));
+            formData.append('GrandTotal', document.getElementById("grand").innerText);
+
+            const fetchTask = fetch(scriptURL, { method: 'POST', body: formData }).catch(e => console.log('Offline'));
+
+            const element = document.getElementById('quote');
+            const opt = {
+                margin: 0,
+                filename: docNo + '.pdf',
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 3, useCORS: true, logging: false },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+
+            try {
+                // Run html2pdf and wait for completion
+                await html2pdf().from(element).set(opt).toPdf().get('pdf').save();
+                await fetchTask; // Also wait for the sheet sync to start
+            } catch (err) {
+                console.error(err);
+                alert("PDF Generation Failed");
+            } finally {
+                // Restore textareas
+                backups.forEach(({ ta, displayDiv }) => {
+                    displayDiv.remove();
+                    ta.style.display = 'block';
+                });
+
+                // Restore button
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
+        }
+        addRow();
+    </script>
+</body>
+
+</html>
